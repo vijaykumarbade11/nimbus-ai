@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="mr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nimbus AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand-wrap">
+        <img src="assets/logo/logo.svg" alt="Nimbus AI logo" class="brand-logo" />
+        <div>
+          <h2 class="brand-name">Nimbus AI</h2>
+          <small>Better Weather. Healthier Fields.</small>
+        </div>
+      </div>
+      <nav class="top-nav">
+        <a href="#features">Features</a>
+        <a href="#about">Why Farmers</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div class="lang-switcher">
+        <button data-lang="mr" class="lang-btn active">मराठी</button>
+        <button data-lang="hi" class="lang-btn">हिंदी</button>
+        <button data-lang="en" class="lang-btn">English</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">Nimbus AI</span>
+          <h1 data-i18n="tagline">Better Weather. Healthier Fields.</h1>
+          <p class="marathi-tagline" data-i18n="marathiTagline">चांगले हवामान. निरोगी शेती.</p>
+          <p class="lead" data-i18n="heroDescription">Smart farming assistance for farmers from sowing to harvest.</p>
+          <div class="cta-row">
+            <a href="weather.html" class="btn btn-primary" data-i18n="checkWeather">Check Weather</a>
+            <a href="crop-advisory.html" class="btn btn-secondary" data-i18n="getAdvice">Get Crop Advice</a>
+          </div>
+          <div class="secondary-cta-row">
+            <a href="schemes.html" class="btn btn-light" data-i18n="exploreSchemes">Explore Schemes</a>
+            <a href="products.html" class="btn btn-light" data-i18n="exploreProducts">Explore Products</a>
+          </div>
+        </div>
+        <div class="hero-art">
+          <div class="sun"></div>
+          <div class="field-card" aria-label="Weather values are loaded for your chosen area after opening the weather page">
+            <div class="mini-stat">
+              <span><i class="fa-solid fa-cloud-sun-rain"></i> Area weather</span>
+              <small>Choose a village on the Weather page</small>
+            </div>
+            <div class="mini-stat">
+              <span><i class="fa-solid fa-location-dot"></i> GPS weather</span>
+              <small>Allow location access for your area</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="features" id="features">
+        <div class="section-heading">
+          <h2>Key Features</h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <i class="fa-solid fa-cloud-sun-rain"></i>
+            <h3 data-i18n="weatherIntelligence">Weather Intelligence</h3>
+            <p>Location-aware area forecasts, with source and model limitations shown.</p>
+          </div>
+          <div class="feature-card">
+            <i class="fa-solid fa-seedling"></i>
+            <h3 data-i18n="cropAdviceTitle">AI Crop Advisory</h3>
+            <p>Evidence-backed field guidance when current weather, soil estimates, and AI services are available.</p>
+          </div>
+          <div class="feature-card">
+            <i class="fa-solid fa-landmark"></i>
+            <h3 data-i18n="govSchemes">Government Schemes</h3>
+            <p>Scheme summaries with direct official links; confirm current eligibility and application status with the department.</p>
+          </div>
+          <div class="feature-card">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <h3 data-i18n="marketplace">Agriculture Marketplace</h3>
+            <p>Browse farm-supply categories and search for current local sellers; verify prices and availability directly.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-strip" id="about">
+        <div>
+          <h3>Built for farmers in Ahmedpur Circle</h3>
+          <p>Simple, mobile-friendly advisory designed for everyday decisions in the field.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer id="contact">
+      <div class="footer-links">
+        <div class="brand-wrap footer-brand">
+          <img src="assets/logo/logo.svg" alt="Nimbus AI logo" class="brand-logo" />
+          <div>
+            <h3>Nimbus AI</h3>
+            <small>Better Weather. Healthier Fields.</small>
+          </div>
+        </div>
+        <div>
+          <h4>Support</h4>
+          <p>Email: <a href="mailto:vijaycbade@gmail.com">vijaycbade@gmail.com</a></p>
+        </div>
+      </div>
+      <div class="footer-legal">Nimbus AI created by BRB Technology · Copyright © 2026 BRB Technology. All rights reserved.</div>
+    </footer>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>

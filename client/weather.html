@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="mr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather | Nimbus AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-wrap sidebar-brand">
+          <img src="assets/logo/logo.svg" alt="Nimbus AI logo" class="brand-logo" />
+          <div>
+            <h3>Nimbus AI</h3>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a>
+          <a href="weather.html" class="active"><i class="fa-solid fa-cloud-sun-rain"></i> Weather Forecast</a>
+          <a href="crop-advisory.html"><i class="fa-solid fa-seedling"></i> Crop Advisory</a>
+          <a href="schemes.html"><i class="fa-solid fa-landmark"></i> Government Schemes</a>
+          <a href="products.html"><i class="fa-solid fa-cart-shopping"></i> Agriculture Products</a>
+          <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+        </nav>
+      </aside>
+      <main class="main-panel weather-page">
+        <div class="page-header">
+          <div>
+            <p class="section-kicker">Nimbus AI · Weather for farmers</p>
+            <h1>Weather for Ahmedpur Taluka</h1>
+            <p class="weather-source-note">Nimbus AI provides location-aware weather estimates and a five-day forecast to help farmers across Ahmedpur and nearby villages plan field work. Allow location access for a forecast centered near your device, or choose a village. Forecast models estimate conditions over an area and cannot guarantee exact conditions at an individual field.</p>
+            <p id="weatherSource" class="weather-source-status" role="status">Requesting device location and area weather…</p>
+            <div class="weather-location-controls">
+              <label class="weather-village-label" for="weatherVillage">Village in Ahmedpur taluka</label>
+              <select id="weatherVillage" aria-label="Choose an Ahmedpur taluka village">
+                <option value="Ahmedpur">Ahmedpur</option>
+              </select>
+              <button class="btn btn-light" id="useCurrentWeatherLocation" type="button">
+                <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Use my current location
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="weather-content">
+          <div class="weather-card-block">
+            <h3>Current Weather</h3>
+            <div class="weather-row" data-weather-metric="temperature">
+              <span>Temperature</span><strong>--</strong>
+            </div>
+            <div class="weather-row" data-weather-metric="feels"><span>Feels like</span><strong>--</strong></div>
+            <div class="weather-row" data-weather-metric="humidity"><span>Humidity</span><strong>--</strong></div>
+            <div class="weather-row" data-weather-metric="wind"><span>Wind</span><strong>--</strong></div>
+            <div class="weather-row" data-weather-metric="rain"><span>Rain probability</span><strong>--</strong></div>
+            <div class="weather-row" data-weather-metric="rainfall"><span>Rainfall</span><strong>--</strong></div>
+          </div>
+          <div class="forecast-panel">
+            <h3>Forecast Outlook</h3>
+            <ul class="forecast-list">
+              <li><span>Loading</span><strong>--</strong><small>Fetching live data</small></li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </div>
+    <footer class="site-footer">
+      <strong>Nimbus AI</strong> created by BRB Technology · Copyright © 2026 BRB Technology. All rights reserved. · <a href="mailto:vijaycbade@gmail.com">vijaycbade@gmail.com</a>
+    </footer>
+    <script src="js/app.js"></script>
+    <script src="js/village-data.js"></script>
+    <script src="js/weather.js"></script>
+  </body>
+</html>

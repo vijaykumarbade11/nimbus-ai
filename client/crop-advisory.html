@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="mr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crop Advisory | Nimbus AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-wrap sidebar-brand">
+          <img src="assets/logo/logo.svg" alt="Nimbus AI logo" class="brand-logo" />
+          <div>
+            <h3>Nimbus AI</h3>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a>
+          <a href="weather.html"><i class="fa-solid fa-cloud-sun-rain"></i> Weather Forecast</a>
+          <a href="crop-advisory.html" class="active"><i class="fa-solid fa-seedling"></i> Crop Advisory</a>
+          <a href="schemes.html"><i class="fa-solid fa-landmark"></i> Government Schemes</a>
+          <a href="products.html"><i class="fa-solid fa-cart-shopping"></i> Agriculture Products</a>
+          <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+        </nav>
+      </aside>
+      <main class="main-panel">
+        <div class="page-header">
+          <div>
+            <p class="section-kicker">Ahmedpur crop doctor</p>
+            <h1>Crop Advisory</h1>
+            <p class="page-intro">Nimbus AI combines the field details you provide with available weather and modelled soil data. Advice is withheld if evidence services are unavailable; use a soil test and local agriculture expert for treatment decisions.</p>
+          </div>
+        </div>
+        <div class="advisory-tabs" role="tablist" aria-label="Crop advisory tools">
+          <button class="advisory-tab active" type="button" role="tab" aria-selected="true" aria-controls="fieldPanel" data-tab="fieldPanel">Field Plan</button>
+          <button class="advisory-tab" type="button" role="tab" aria-selected="false" aria-controls="scanPanel" data-tab="scanPanel">Photo Scan</button>
+          <button class="advisory-tab" type="button" role="tab" aria-selected="false" aria-controls="guidePanel" data-tab="guidePanel">Guidance</button>
+        </div>
+        <section id="fieldPanel" class="advisory-panel active" role="tabpanel">
+          <form id="advisoryForm" class="stack-form">
+          <div class="form-grid">
+            <label>Crop<select name="crop" required><option value="">Choose crop</option><option value="Soybean">Soybean</option><option value="Cotton">Cotton</option><option value="Tur / Pigeon Pea">Tur / Pigeon Pea</option><option value="Jowar">Jowar</option><option value="Maize">Maize</option><option value="Paddy">Paddy</option><option value="Chickpea">Chickpea</option><option value="Wheat">Wheat</option><option value="Sugarcane">Sugarcane</option><option value="Onion">Onion</option></select></label>
+            <label>Crop variety<input name="variety" id="varietySelect" list="cropVarietyOptions" autocomplete="off" placeholder="Enter the variety shown on your seed packet" required /><datalist id="cropVarietyOptions"></datalist></label>
+            <label>Sowing Date<input type="date" name="sowingDate" required /></label>
+            <label>Field soil type<select name="soilType" required><option value="">Choose observed field soil</option><option>Deep black clay soil</option><option>Medium black soil</option><option>Shallow black soil</option><option>Red or brown soil</option><option>Loamy soil</option><option>Sandy soil</option><option>Other / unsure</option></select></label>
+            <label>Irrigation Type<select name="irrigationType" required><option value="">Choose irrigation source</option><option>Rainfed</option><option>Open well</option><option>Borewell</option><option>Canal</option><option>Drip</option><option>Sprinkler</option><option>Flood / furrow</option><option>Other</option></select></label>
+            <label>Current Crop Stage<select name="stage" required><option value="">Choose crop stage</option><option value="Land Preparation">Land Preparation</option><option value="Sowing">Sowing</option><option value="Vegetative Growth">Vegetative Growth</option><option value="Flowering">Flowering</option><option value="Pod / Boll Formation">Pod / Boll Formation</option><option value="Harvesting">Harvesting</option></select></label>
+            <label>Observed problem / symptoms<textarea name="symptoms" rows="3" placeholder="Describe what you see, where it appears, and when it began. Enter “No visible symptoms” if none." required></textarea></label>
+            <label>Ahmedpur village<select name="village" id="villageSelect" required></select></label>
+          </div>
+            <section class="soil-test-fields" aria-labelledby="soilTestTitle">
+              <h3 id="soilTestTitle">Soil laboratory report</h3>
+              <p>Enter the results from your field’s latest soil test. The public soil map is only a regional estimate and cannot replace these measurements for nutrient advice.</p>
+              <div class="form-grid">
+                <label>Soil test date<input type="date" name="soilTestDate" required /></label>
+                <label>Soil pH<input type="number" name="soilPH" min="0" max="14" step="0.1" required /></label>
+                <label>Available nitrogen (kg/ha)<input type="number" name="availableNitrogen" min="0" step="0.1" required /></label>
+                <label>Available phosphorus (kg/ha)<input type="number" name="availablePhosphorus" min="0" step="0.1" required /></label>
+                <label>Available potassium (kg/ha)<input type="number" name="availablePotassium" min="0" step="0.1" required /></label>
+              </div>
+            </section>
+            <button type="submit" class="btn btn-primary">Build My Field Guidance</button>
+          </form>
+          <p class="warning-note">Enter the exact variety printed on the seed packet. Suggestions are not an exhaustive official Maharashtra release list or a guarantee of local suitability or availability. Confirm the variety and seed lot with the agriculture department or an authorised dealer. Nutrient guidance requires the latest field soil-test values.</p>
+          <div id="advisoryResult" class="result-box"></div>
+        </section>
+        <section id="scanPanel" class="advisory-panel" role="tabpanel" hidden>
+          <div class="scan-layout">
+            <div class="scan-dropzone">
+              <i class="fa-solid fa-camera scan-icon"></i>
+              <h2>Scan crop photo</h2>
+              <p>Choose a photo from your gallery or camera. Include a clear close-up of the affected leaf, stem, flower, or fruit and, if possible, one whole-plant image. Nimbus AI can only provide a tentative visual triage, not a confirmed diagnosis.</p>
+              <label class="btn btn-primary scan-upload">Choose Photo<input id="cropPhoto" type="file" accept="image/jpeg,image/png,image/webp" hidden /></label>
+              <img id="cropPreview" class="crop-preview hidden" alt="Selected crop photo preview" />
+            </div>
+            <div class="scan-checklist">
+              <h3>Before you act</h3>
+              <ul class="quick-list">
+                <li>Photograph healthy and affected plants for comparison.</li>
+                <li>Record crop, variety, village, stage, and recent rain.</li>
+                <li>Do not spray from a photo alone; confirm the cause first.</li>
+              </ul>
+              <button id="runScan" class="btn btn-secondary" type="button" disabled>Review Photo and Symptoms</button>
+              <div id="scanResult" class="result-box"></div>
+            </div>
+          </div>
+        </section>
+        <section id="guidePanel" class="advisory-panel" role="tabpanel" hidden>
+          <div class="guide-grid">
+            <article class="guide-card"><i class="fa-solid fa-seedling"></i><h3>Choose the field</h3><p>Select your Ahmedpur village, crop, stage, and variety. The guidance stays tied to the field context you provide.</p></article>
+            <article class="guide-card"><i class="fa-solid fa-cloud-sun-rain"></i><h3>Use current weather</h3><p>Check live public weather before irrigation or spraying. Avoid field operations during rain, strong wind, or wet foliage.</p></article>
+            <article class="guide-card"><i class="fa-solid fa-flask"></i><h3>Confirm soil and disease</h3><p>Public soil maps are regional estimates. Use a soil or plant laboratory result before major fertiliser or pesticide decisions.</p></article>
+          </div>
+          <div id="soilAdvisoryCard" class="result-box"><p>Loading public soil estimate for the active location...</p></div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <strong>Nimbus AI</strong> created by BRB Technology · Copyright © 2026 BRB Technology. All rights reserved. · <a href="mailto:vijaycbade@gmail.com">vijaycbade@gmail.com</a>
+    </footer>
+    <script src="js/app.js"></script>
+    <script src="js/village-data.js"></script>
+    <script src="js/advisory.js"></script>
+  </body>
+</html>

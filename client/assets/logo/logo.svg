@@ -1,0 +1,9 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="180" height="180" rx="38" fill="#0F5A43"/>
+  <circle cx="90" cy="84" r="45" fill="#A8D8FF"/>
+  <path d="M65 98C82 74 106 66 121 72C113 88 101 96 81 104C74 108 69 105 65 98Z" fill="#F3F9FF"/>
+  <path d="M42 122C58 108 71 106 86 112C74 123 63 129 49 134C45 131 43 128 42 122Z" fill="#7BC67D"/>
+  <path d="M105 121C116 108 127 106 142 112C132 124 121 129 110 133C108 129 106 125 105 121Z" fill="#7BC67D"/>
+  <path d="M86 56C89 49 96 46 102 48C100 58 97 62 88 66C85 62 84 58 86 56Z" fill="#F9D966"/>
+  <text x="90" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Nimbus AI</text>
+</svg>

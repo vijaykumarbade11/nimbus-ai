@@ -1,0 +1,21 @@
+window.AhmedpurVillages = [
+  'Ahmedpur',
+  'Aajani (Kh)', 'Aambegaon', 'Aanandwadi', 'Andhori', 'Babaldara', 'Belur',
+  'Bodkha', 'Bramahapuri', 'Chikhli', 'Chilkha', 'Chobali', 'Dagadwadi',
+  'Devkara', 'Dhalegaon', 'Dhanora (Kh)', 'Dhanori (Bk)', 'Dhaswadi',
+  'Gadewadi', 'Gangahipparga', 'Godhala', 'Gugdal', 'Gunjoti', 'Guttewadi',
+  'Hadolti', 'Hagadal', 'Halni', 'Hangarga (Kh)', 'Hasarni', 'Hingangaon',
+  'Hippalgaon', 'Hipparga (Kajal)', 'Hipparga (Kop)', 'Kalegaon', 'Kendrewadi',
+  'Khanapur', 'Khandali', 'Kharabwadi', 'Kingaon', 'Kinikadu', 'Kodgaon',
+  'Kokanga', 'Kolwadi', 'Kopara', 'Kumtha (Bk)', 'Lanji', 'Lendegaon',
+  'Lingdhal', 'Makni', 'Malegaon (Kh)', 'Mandani', 'Mawalgaon', 'Methi',
+  'Mogha', 'Mohgaon', 'Molwan', 'Mulki', 'Nagathana', 'Nagzari',
+  'Nandura (Bk)', 'Nandura (Kh)', 'Narwatwadi', 'Parchanda', 'Ralga', 'Rudha',
+  'Ruiee', 'Salgara', 'Sangavi (Su)', 'Satala', 'Sawargan Thot',
+  'Sawargaon (Ro)', 'Sayyadpur', 'Shenkud', 'Shirur Tajband',
+  'Shiwankhed (Kh)', 'Sindagi (Bk)', 'Sindgi (Kh)', 'Sonkhed', 'Sora',
+  'Sumthana', 'Sunegaon (Se)', 'Takalgaon (Ka)', 'Talegaon', 'Telgaon',
+  'Tembhurni', 'Thodga', 'Tirtha', 'Ujana', 'Umarga (Yelladevi)',
+  'Umarga Kort', 'Unni Jamb', 'Vaygaon', 'Vilegaon', 'Walsangi', 'Wanjarwadi',
+  'Warawanti', 'Yeldarwadi', 'Yestar'
+];
