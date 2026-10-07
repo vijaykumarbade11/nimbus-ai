@@ -11,6 +11,13 @@ const cropPages = {
   maize: 'https://www.krushikranti.com/bajarbhav/maize-bajar-bhav-today',
   jowar: 'https://www.krushikranti.com/bajarbhav/jowar-bajar-bhav-today'
 };
+const cropNames = {
+  soybean: 'Soybean',
+  cotton: 'Cotton',
+  tur: 'Tur / Pigeon Pea',
+  maize: 'Maize',
+  jowar: 'Jowar'
+};
 
 const clean = (value) => String(value || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 const decode = (value) => clean(value).replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
@@ -44,33 +51,82 @@ function parseRows(html) {
   return { rows: rows.slice(0, 100), updatedAt };
 }
 
+async function fetchCropRates(crop) {
+  const url = cropPages[crop];
+  const cached = cache.get(crop);
+  if (cached && Date.now() - cached.time < 10 * 60 * 1000) return cached.data;
+
+  const response = await axios.get(url, {
+    timeout: 20000,
+    headers: { Accept: 'text/html', 'User-Agent': 'Nimbus-AI/1.0' }
+  });
+  const parsed = parseRows(response.data);
+  const data = {
+    crop,
+    cropName: cropNames[crop],
+    sourceName,
+    sourceUrl: url,
+    updatedAt: parsed.updatedAt,
+    ahmedpurListed: parsed.rows.some((row) => /ahmedpur|ahmadpur|अहमदपूर|अहमदपुर/i.test(row.market)),
+    rows: parsed.rows.map((row) => ({ ...row, cropName: cropNames[crop] }))
+  };
+  cache.set(crop, { time: Date.now(), data });
+  return data;
+}
+
 router.get('/', async (req, res) => {
   const crop = String(req.query.crop || 'soybean').toLowerCase();
-  const url = cropPages[crop];
-  if (!url) return res.status(400).json({ message: 'Market rates are not configured for this crop.' });
-
-  const cached = cache.get(crop);
-  if (cached && Date.now() - cached.time < 10 * 60 * 1000) return res.json(cached.data);
-
-  try {
-    const response = await axios.get(url, {
-      timeout: 20000,
-      headers: { Accept: 'text/html', 'User-Agent': 'Nimbus-AI/1.0' }
-    });
-    const parsed = parseRows(response.data);
-    const ahmedpurListed = parsed.rows.some((row) => /ahmedpur|ahmadpur|अहमदपूर|अहमदपुर/i.test(row.market));
-    const data = {
-      sourceName,
-      sourceUrl: url,
-      updatedAt: parsed.updatedAt,
-      ahmedpurListed,
-      rows: parsed.rows
-    };
-    cache.set(crop, { time: Date.now(), data });
-    return res.json(data);
-  } catch (error) {
-    return res.status(503).json({ message: 'Public market rates are temporarily unavailable.', sourceName, sourceUrl: url });
+  if (crop !== 'all' && !cropPages[crop]) {
+    return res.status(400).json({ message: 'Market rates are not configured for this crop.' });
   }
+
+  if (crop !== 'all') {
+    try {
+      return res.json(await fetchCropRates(crop));
+    } catch (error) {
+      return res.status(503).json({
+        message: 'Public market rates are temporarily unavailable.',
+        sourceName,
+        sourceUrl: cropPages[crop]
+      });
+    }
+  }
+
+  const results = await Promise.allSettled(Object.keys(cropPages).map(fetchCropRates));
+  const reports = results.map((result, index) => result.status === 'fulfilled'
+    ? result.value
+    : {
+      crop: Object.keys(cropPages)[index],
+      cropName: cropNames[Object.keys(cropPages)[index]],
+      sourceName,
+      sourceUrl: cropPages[Object.keys(cropPages)[index]],
+      error: 'This crop report could not be loaded.',
+      rows: []
+    });
+  const rows = reports.flatMap((report) => report.rows);
+  if (!rows.length) {
+    return res.status(503).json({
+      message: 'Public market rates are temporarily unavailable.',
+      sourceName,
+      reports: reports.map(({ cropName, sourceUrl, error }) => ({ cropName, sourceUrl, error })),
+      rows: []
+    });
+  }
+
+  return res.json({
+    sourceName,
+    sourceUrl: null,
+    updatedAt: null,
+    ahmedpurListed: reports.some((report) => report.ahmedpurListed),
+    reports: reports.map(({ cropName, sourceUrl, updatedAt, error, rows: reportRows }) => ({
+      cropName,
+      sourceUrl,
+      updatedAt,
+      error,
+      hasRates: reportRows.length > 0
+    })),
+    rows
+  });
 });
 
 module.exports = router;

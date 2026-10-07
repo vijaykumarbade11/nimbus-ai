@@ -39,15 +39,53 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (villageSelect) {
     villageSelect.replaceChildren(new Option('Choose village', ''));
     villages.forEach((village) => villageSelect.add(new Option(village, village)));
-    villageSelect.value = villages.includes(farmer.village) ? farmer.village : '';
+    villageSelect.value = villages.includes(farmer.village) ? farmer.village : 'Ahmedpur';
   }
+
+  const locationStatus = document.getElementById('fieldLocationStatus');
+  const locationMessage = (text) => window.NimbusI18n?.t?.(text) || text;
+  const locationPromise = Promise.resolve()
+    .then(() => window.NimbusLocation?.capture?.())
+    .then((location) => {
+      if (location) {
+        locationStatus.textContent = locationMessage('Using device GPS for location-based estimates and advisory requests.');
+        return location;
+      }
+      locationStatus.textContent = locationMessage('GPS is unavailable. Choose your village as a fallback.');
+      return null;
+    })
+    .catch((error) => {
+      console.warn('Unable to capture device location for advisory:', error.message);
+      locationStatus.textContent = locationMessage('GPS is unavailable. Choose your village as a fallback.');
+      return null;
+    });
+  const getLocationFields = async () => {
+    const location = await locationPromise;
+    if (location && Number.isFinite(location.latitude) && Number.isFinite(location.longitude)) {
+      return { latitude: location.latitude, longitude: location.longitude };
+    }
+    if (villageSelect?.value) return {};
+    throw new Error('Allow device location or choose your village as a fallback.');
+  };
 
   const updateVarietySuggestions = () => {
     if (!varietyOptions) return;
     varietyOptions.replaceChildren(...(varietySuggestions[cropSelect.value] || []).map((name) => new Option(name, name)));
   };
   cropSelect?.addEventListener('change', updateVarietySuggestions);
+  if (cropSelect && Array.isArray(farmer.mainCrops) && farmer.mainCrops.length
+    && Array.from(cropSelect.options).some((option) => option.value === farmer.mainCrops[0])) {
+    cropSelect.value = farmer.mainCrops[0];
+  }
   updateVarietySuggestions();
+  if (form.elements.soilType && farmer.soilType
+    && Array.from(form.elements.soilType.options).some((option) => option.value === farmer.soilType)) {
+    form.elements.soilType.value = farmer.soilType;
+  }
+  if (form.elements.irrigationType && farmer.irrigationType
+    && Array.from(form.elements.irrigationType.options).some((option) => option.value === farmer.irrigationType)) {
+    form.elements.irrigationType.value = farmer.irrigationType;
+  }
 
   const photoInput = document.getElementById('cropPhoto');
   const preview = document.getElementById('cropPreview');
@@ -96,31 +134,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     hasPhotoResult = false;
     const crop = cropSelect.value;
     const stage = form.elements.stage.value;
-    const village = villageSelect.value;
-    const symptoms = form.elements.symptoms.value.trim();
     const requiredFields = [
       'crop', 'variety', 'sowingDate', 'soilType', 'irrigationType', 'stage', 'symptoms',
-      'village', 'soilTestDate', 'soilPH', 'availableNitrogen', 'availablePhosphorus', 'availablePotassium'
     ];
     const missingField = requiredFields.find((name) => !String(form.elements[name]?.value || '').trim());
     if (missingField) {
-      scanResult.textContent = 'Complete all required field-plan and soil-test values before requesting a photo review.';
+      scanResult.textContent = 'Complete the required field-plan details before requesting a photo review.';
       return;
     }
-    scanResult.textContent = 'Sending the selected photo for a cautious visual review…';
 
     try {
+      const locationFields = await getLocationFields();
+      scanResult.textContent = 'Sending the selected photo for a cautious visual review…';
       const imageData = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
         reader.onerror = () => reject(new Error('The selected photo could not be read.'));
         reader.readAsDataURL(selectedPhoto);
       });
-      const response = await fetch(window.NimbusApi?.url?.('/api/advisory/disease-detection') || '/api/advisory/disease-detection', {
+      const response = await window.NimbusApi.request('/api/advisory/disease-detection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...Object.fromEntries(new FormData(form).entries()),
+          ...locationFields,
           imageData,
           lang: window.NimbusI18n?.lang?.() || 'mr'
         })
@@ -148,29 +185,107 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const soilCard = document.getElementById('soilAdvisoryCard');
   if (soilCard) {
-    const locationPath = window.NimbusLocation?.buildWeatherUrl?.('/api/weather/current') || '/api/weather/current';
-    const soilPath = locationPath.replace('/api/weather/current', '/api/soil/current');
-    try {
-      const response = await fetch(window.NimbusApi?.url?.(soilPath) || soilPath);
-      const soil = await response.json();
-      if (!response.ok || !soil.properties) throw new Error(soil.error || 'Public soil estimate unavailable.');
-      soilCard.textContent = `${soil.location?.name || 'Selected location'} · ${soil.depth}. SoilGrids model estimate: clay ${soil.properties.clay ?? '--'}%, sand ${soil.properties.sand ?? '--'}%, silt ${soil.properties.silt ?? '--'}%, organic carbon ${soil.properties.organicCarbon ?? '--'} g/kg. ${soil.limitation} Use a field soil test for farm decisions.`;
-    } catch (error) {
-      soilCard.textContent = `${error.message || 'Public soil estimate unavailable.'} Use a local soil test for field decisions.`;
-    }
+    void (async () => {
+      try {
+        const location = await locationPromise;
+        const params = new URLSearchParams();
+        if (location) {
+          params.set('lat', location.latitude);
+          params.set('lon', location.longitude);
+        } else if (villageSelect?.value) {
+          params.set('village', villageSelect.value);
+        } else {
+          throw new Error('Allow device location or choose your village to load its soil estimate.');
+        }
+        const soilPath = `/api/soil/current?${params.toString()}`;
+        const response = await window.NimbusApi.request(soilPath);
+        const soil = await response.json();
+        if (!response.ok || !soil.properties) throw new Error(soil.error || 'Public soil estimate unavailable.');
+        soilCard.textContent = `${soil.location?.name || 'Selected location'} · ${soil.depth}. SoilGrids model estimate: clay ${soil.properties.clay ?? '--'}%, sand ${soil.properties.sand ?? '--'}%, silt ${soil.properties.silt ?? '--'}%, organic carbon ${soil.properties.organicCarbon ?? '--'} g/kg. ${soil.limitation} This is not a laboratory result.`;
+      } catch (error) {
+        soilCard.textContent = `${error.message || 'Public soil estimate unavailable.'} Use a local soil test for field decisions.`;
+      }
+    })();
   }
+
+  const chatForm = document.getElementById('cropChatForm');
+  const chatQuestion = document.getElementById('cropChatQuestion');
+  const chatMessages = document.getElementById('cropChatMessages');
+  const chatStatus = document.getElementById('cropChatStatus');
+  const chatHistory = [];
+  const addChatMessage = (role, text) => {
+    if (!chatMessages) return;
+    chatMessages.querySelector('.crop-chat-empty')?.remove();
+    const message = document.createElement('p');
+    message.className = `crop-chat-message ${role}`;
+    message.textContent = text;
+    chatMessages.append(message);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  };
+
+  chatForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!chatQuestion?.value.trim() || !chatMessages || !chatStatus) return;
+    const button = chatForm.querySelector('button[type="submit"]');
+    const question = chatQuestion.value.trim();
+    button.disabled = true;
+    chatStatus.classList.remove('success');
+    chatStatus.textContent = locationMessage('Checking weather and soil evidence before asking Nimbus AI…');
+    addChatMessage('user', question);
+
+    try {
+      const locationFields = await getLocationFields();
+      const field = Object.fromEntries(new FormData(form).entries());
+      const response = await window.NimbusApi.request('/api/advisory/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question,
+          history: chatHistory.slice(-8),
+          field,
+          ...locationFields,
+          lang: window.NimbusI18n?.lang?.() || 'mr'
+        })
+      });
+      const data = await response.json();
+      if (!response.ok || typeof data.reply !== 'string') {
+        throw new Error(data.message || 'The crop chatbot could not generate a verified answer.');
+      }
+
+      const followUpText = Array.isArray(data.followUpQuestions) && data.followUpQuestions.length
+        ? `\n\n${locationMessage('To improve this guidance, tell me:')}\n${data.followUpQuestions.map((item) => `• ${item}`).join('\n')}`
+        : '';
+      addChatMessage('assistant', `${data.reply}${followUpText}`);
+      chatHistory.push(
+        { role: 'user', content: question },
+        { role: 'assistant', content: data.reply }
+      );
+      chatQuestion.value = '';
+      chatStatus.classList.add('success');
+      chatStatus.textContent = `${locationMessage('Evidence checked')}: ${data.location} · ${data.evidence.weatherSource}; ${data.evidence.soilSource} (${data.evidence.soilDepth}). ${data.evidence.soilLimitation}`;
+    } catch (error) {
+      chatStatus.textContent = `${error.message || 'The crop chatbot could not answer.'} ${locationMessage('No fallback or demo answer was generated.')}`;
+    } finally {
+      button.disabled = false;
+    }
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!form.reportValidity() || !resultBox) return;
 
     const formData = new FormData(form);
-    const payload = { ...Object.fromEntries(formData.entries()), lang: window.NimbusI18n?.lang?.() || 'mr' };
     hasAdviceResult = false;
-    resultBox.textContent = 'Checking weather and soil evidence before requesting advice…';
+    resultBox.textContent = 'Checking location, weather, and soil evidence before requesting advice…';
 
     try {
-      const response = await fetch(window.NimbusApi?.url?.('/api/advisory') || '/api/advisory', {
+      const locationFields = await getLocationFields();
+      const payload = {
+        ...Object.fromEntries(formData.entries()),
+        ...locationFields,
+        lang: window.NimbusI18n?.lang?.() || 'mr'
+      };
+      const response = await window.NimbusApi.request('/api/advisory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

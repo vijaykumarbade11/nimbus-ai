@@ -33,11 +33,10 @@
             <h1>Agriculture Products</h1>
           </div>
           <div class="market-toolbar">
-            <span class="market-tag">Ahmedpur taluka</span>
-            <span id="cartCount" class="cart-badge" aria-label="Items in cart" aria-live="polite">0</span>
+            <span class="market-tag">Ahmedpur taluka · Reference catalogue</span>
           </div>
         </div>
-        <p class="market-source-note">Nimbus AI does not have verified live stock or shop records for Ahmedpur. Search current local sellers on Google Maps and confirm price, stock, product labels, and contact details directly before purchasing.</p>
+        <p class="market-source-note">Live mandi sale rates are shown below for crops with a public report, including reported varieties and prices. Seed, fertilizer, machinery, and other shop prices are not published by a verified Ahmedpur seller feed; check the current quote with a local shop before purchasing.</p>
         <section class="mandi-panel" aria-labelledby="localShopsTitle">
           <div class="mandi-header">
             <div>
@@ -57,21 +56,22 @@
           <div class="mandi-header">
             <div>
               <p class="section-kicker">Public mandi reports</p>
-              <h2 id="mandiTitle">Latest Available Mandi Rates</h2>
+              <h2 id="mandiTitle">Reported Mandi Prices</h2>
               <p id="mandiSource" class="market-source-note">Loading public market data...</p>
             </div>
-            <label class="mandi-select-label">Crop<select id="mandiCrop"><option value="soybean">Soybean</option><option value="cotton">Cotton</option><option value="tur">Tur / Pigeon Pea</option><option value="maize">Maize</option><option value="jowar">Jowar</option></select></label>
+            <label class="mandi-select-label">Crop<select id="mandiCrop"><option value="all">All reported crops</option><option value="soybean">Soybean</option><option value="cotton">Cotton</option><option value="tur">Tur / Pigeon Pea</option><option value="maize">Maize</option><option value="jowar">Jowar</option></select></label>
           </div>
           <div id="mandiStatus" class="warning-note" hidden></div>
           <div class="table-scroll">
             <table class="mandi-table">
-              <thead><tr><th>Market Committee</th><th>Variety</th><th>Unit</th><th>Arrivals</th><th>Minimum</th><th>Maximum</th><th>Modal</th></tr></thead>
-              <tbody id="mandiRows"><tr><td colspan="7">Loading rates...</td></tr></tbody>
+              <thead><tr><th>Crop</th><th>Market Committee</th><th>Variety</th><th>Unit</th><th>Arrivals</th><th>Minimum price</th><th>Maximum price</th><th>Modal price</th></tr></thead>
+              <tbody id="mandiRows"><tr><td colspan="8">Loading rates...</td></tr></tbody>
             </table>
           </div>
+          <p class="market-source-note">Mandi prices are market-reported values, usually ₹ per quintal; variety details and report dates may be missing in the source. Ahmedpur-specific prices appear only when listed. Confirm the current rate with your APMC before selling.</p>
         </section>
-        <p id="cartStatus" class="cart-status" role="status" aria-live="polite"></p>
-        <div id="productsList" class="card-list"></div>
+        <p class="market-source-note">Input products below are shown with “Seller quote required” when no verified current Ahmedpur price is available. Use the shop search above to request a brand-, pack-size-, and date-specific quote.</p>
+        <div id="productsList" class="card-list product-list" aria-live="polite"></div>
       </main>
     </div>
 
@@ -87,6 +87,7 @@
       </div>
     </div>
 
+    <script src="js/api-config.js"></script>
     <script src="js/app.js"></script>
     <script src="js/products.js"></script>
   </body>

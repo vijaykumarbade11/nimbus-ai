@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const root = document.getElementById('productsList');
-  const cartCountEl = document.getElementById('cartCount');
-  const cartStatusEl = document.getElementById('cartStatus');
   const modal = document.getElementById('productModal');
   const modalContent = document.getElementById('productModalContent');
   const mandiCrop = document.getElementById('mandiCrop');
@@ -13,51 +11,92 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const loadMandiRates = async () => {
     if (!mandiRows || !mandiCrop) return;
-    mandiRows.innerHTML = '<tr><td colspan="7">Loading rates...</td></tr>';
-    if (mandiStatus) mandiStatus.hidden = true;
+    mandiRows.innerHTML = '<tr><td colspan="8">Loading rates...</td></tr>';
+    if (mandiStatus) {
+      mandiStatus.hidden = true;
+      mandiStatus.textContent = '';
+    }
     try {
-      const response = await fetch(window.NimbusApi?.url?.(`/api/market-rates?crop=${encodeURIComponent(mandiCrop.value)}`) || `/api/market-rates?crop=${encodeURIComponent(mandiCrop.value)}`);
+      const path = `/api/market-rates?crop=${encodeURIComponent(mandiCrop.value)}`;
+      const response = await window.NimbusApi.request(path);
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Market rates unavailable.');
       if (mandiSource) {
-        mandiSource.replaceChildren(document.createTextNode(`${data.sourceName} · Source report date: ${data.updatedAt || 'not supplied by source'} · Values are ₹ per quintal where listed. `));
-        if (data.sourceUrl && new URL(data.sourceUrl).hostname === 'www.krushikranti.com') {
+        const reports = data.reports || [data];
+        mandiSource.replaceChildren(document.createTextNode(
+          `${data.sourceName} · Source report date: ${data.updatedAt || 'not supplied by source'} · Values are ₹ per quintal where listed. `
+        ));
+        reports.forEach((report, index) => {
+          if (!report.sourceUrl || new URL(report.sourceUrl).hostname !== 'www.krushikranti.com') return;
+          if (index) mandiSource.append(document.createTextNode(' · '));
           const sourceLink = document.createElement('a');
-          sourceLink.href = data.sourceUrl;
+          sourceLink.href = report.sourceUrl;
           sourceLink.target = '_blank';
           sourceLink.rel = 'noopener noreferrer';
-          sourceLink.textContent = 'View source report';
+          sourceLink.textContent = reports.length > 1
+            ? `${report.cropName} source (${report.updatedAt || 'date not supplied'})`
+            : 'View source report';
           mandiSource.append(sourceLink);
+        });
+        const failedReports = reports.filter((report) => report.error);
+        const emptyReports = reports.filter((report) => report.hasRates === false && !report.error);
+        const statusParts = [];
+        if (failedReports.length) {
+          statusParts.push(`Could not load current reports for: ${failedReports.map((report) => report.cropName).join(', ')}.`);
+        }
+        if (emptyReports.length) {
+          statusParts.push(`No price rows were returned for: ${emptyReports.map((report) => report.cropName).join(', ')}.`);
+        }
+        if (data.ahmedpurListed === false) {
+          statusParts.push('Ahmedpur was not listed in these source responses; shown values are comparison-market rates only.');
+        }
+        if (statusParts.length && mandiStatus) {
+          mandiStatus.hidden = false;
+          mandiStatus.textContent = `${statusParts.join(' ')} Other returned rates are shown below.`;
         }
       }
       if (!data.rows?.length) {
-        mandiRows.innerHTML = '<tr><td colspan="7">No rates were returned by the public source.</td></tr>';
+        mandiRows.innerHTML = '<tr><td colspan="8">No rates were returned by the public source.</td></tr>';
         return;
       }
       mandiRows.replaceChildren(...data.rows.map((row) => {
         const tableRow = document.createElement('tr');
-        [row.market, row.variety, row.unit, row.arrivals, row.minimum, row.maximum].forEach((value) => {
+        const formatPrice = (value) => {
+          const amount = Number(String(value ?? '').replace(/,/g, ''));
+          return Number.isFinite(amount) && String(value ?? '').trim() !== ''
+            ? `₹${amount.toLocaleString('en-IN')}`
+            : (value == null || value === '' ? '--' : String(value));
+        };
+        [
+          row.cropName || data.cropName || mandiCrop.value,
+          row.market,
+          row.variety === '---' ? 'Not specified by source' : row.variety,
+          row.unit,
+          row.arrivals,
+          formatPrice(row.minimum),
+          formatPrice(row.maximum)
+        ].forEach((value) => {
           const cell = document.createElement('td');
           cell.textContent = value == null ? '--' : String(value);
           tableRow.append(cell);
         });
         const modalCell = document.createElement('td');
         const modalValue = document.createElement('strong');
-        modalValue.textContent = row.modal == null ? '--' : String(row.modal);
+        modalValue.textContent = formatPrice(row.modal);
         modalCell.append(modalValue);
         tableRow.append(modalCell);
         return tableRow;
       }));
-      if (data.ahmedpurListed === false && mandiStatus) {
+      if (data.ahmedpurListed === false && mandiStatus && !mandiStatus.textContent) {
         mandiStatus.hidden = false;
         mandiStatus.textContent = 'Ahmedpur was not listed in this source response. These are comparison-market rates only; confirm the local Ahmedpur APMC rate before selling.';
       }
       window.setTimeout(() => window.NimbusTranslate?.(), 0);
     } catch (error) {
-      mandiRows.innerHTML = '<tr><td colspan="7">Public market rates are temporarily unavailable.</td></tr>';
+      mandiRows.innerHTML = '<tr><td colspan="8">Public market rates are temporarily unavailable.</td></tr>';
       if (mandiStatus) {
         mandiStatus.hidden = false;
-        mandiStatus.textContent = `${error.message} Do not treat the retail catalog price as today’s mandi rate.`;
+        mandiStatus.textContent = `${error.message} The product directory does not provide today’s mandi price.`;
       }
     }
   };
@@ -65,68 +104,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   mandiCrop?.addEventListener('change', loadMandiRates);
   loadMandiRates();
 
-  const cartKey = 'nimbus-cart';
   let products = [];
 
-  const hasStock = (product) => Number(product.stock) > 0;
   const hasKnownPrice = (product) => product.price !== null && product.price !== '' && Number.isFinite(Number(product.price));
-  const priceText = (product) => hasKnownPrice(product) ? `₹${Number(product.price).toLocaleString('en-IN')}` : 'Verify live price';
+  const priceText = (product) => hasKnownPrice(product) ? `₹${Number(product.price).toLocaleString('en-IN')}` : 'Seller quote required';
   const marketPriceText = (product) => product.marketPrice !== null && product.marketPrice !== '' && Number.isFinite(Number(product.marketPrice))
     ? `Ahmedpur: ₹${Number(product.marketPrice).toLocaleString('en-IN')} / ${product.marketUnit || product.unit || 'unit'}`
-    : 'Ahmedpur: confirm today’s rate';
-
-  const getCart = () => {
-    try {
-      return JSON.parse(localStorage.getItem(cartKey) || '[]');
-    } catch (error) {
-      return [];
-    }
-  };
-
-  const updateCartBadge = () => {
-    if (cartCountEl) {
-      cartCountEl.textContent = String(getCart().length);
-    }
-  };
-
-  const announceCartChange = (message) => {
-    if (cartStatusEl) cartStatusEl.textContent = message;
-  };
-
-  const removeFromCart = (productId) => {
-    const cart = getCart().filter((item) => item._id !== productId);
-    localStorage.setItem(cartKey, JSON.stringify(cart));
-    updateCartBadge();
-    renderProducts();
-  };
-
-  const addToCart = (product) => {
-    if (!hasStock(product)) {
-      announceCartChange(`${product.name} needs live seller availability confirmation.`);
-      return false;
-    }
-
-    const cart = getCart();
-    const existing = cart.some((item) => item._id === product._id);
-    if (!existing) {
-      cart.push({
-        _id: product._id,
-        name: product.name,
-        price: product.price,
-        unit: product.unit,
-        image: product.image
-      });
-      localStorage.setItem(cartKey, JSON.stringify(cart));
-      updateCartBadge();
-      renderProducts();
-      announceCartChange(`${product.name} added to cart.`);
-      return true;
-    }
-
-    removeFromCart(product._id);
-    announceCartChange(`${product.name} removed from cart.`);
-    return false;
-  };
+    : 'No verified live Ahmedpur price';
 
   const closeModal = () => {
     if (!modal) return;
@@ -137,15 +121,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const openProductDetail = (product) => {
     if (!modal || !modalContent) return;
 
-    const cart = getCart();
-    const inCart = cart.some((item) => item._id === product._id);
     const mapSearch = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${product.name} shop Ahmedpur Latur Maharashtra`)}`;
 
     modalContent.innerHTML = `
       <div class="modal-body">
         <div class="modal-topline">
           <span class="category-badge">${product.category || 'Agriculture'}</span>
-          <span class="stock-pill ${hasStock(product) ? 'in-stock' : 'out-stock'}">${product.availability || (hasStock(product) ? 'In stock' : 'Verify availability')}</span>
+          <span class="stock-pill verify">${product.availability || 'Confirm with a local seller'}</span>
         </div>
         <h2 id="modalTitle">${product.name}</h2>
         <div class="detail-price-row">
@@ -163,7 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <div><span>Seller</span><strong>${product.seller || 'No seller listing verified'}</strong></div>
           <div><span>Location</span><strong>${product.location || 'Ahmedpur Market, Latur'}</strong></div>
           <div><span>Quality</span><strong>${product.quality || 'Fresh stock'}</strong></div>
-          <div><span>Stock</span><strong>${hasStock(product) ? `${product.stock} available` : 'Verify with seller'}</strong></div>
+          <div><span>Stock</span><strong>${product.stock ? `${product.stock} available` : 'Not verified'}</strong></div>
           <div><span>Minimum order</span><strong>${product.minOrder || '1 unit'}</strong></div>
           <div><span>Source</span><strong>${product.source || 'Local agri market'}</strong></div>
           <div><span>Seller contact</span><strong>${product.sellerPhone ? `<a href="tel:${product.sellerPhone}">${product.sellerPhone}</a>` : 'Public phone not configured'}</strong></div>
@@ -177,7 +159,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         </ul>
         <div class="modal-actions">
           <a class="btn btn-light" href="${mapSearch}" target="_blank" rel="noopener noreferrer">Find local sellers on Google Maps</a>
-          <button type="button" class="btn btn-primary" data-toggle-cart="${product._id}" ${!inCart && !hasStock(product) ? 'disabled' : ''}>${inCart ? 'Remove from Cart' : hasStock(product) ? 'Add to Cart' : 'Verify Availability'}</button>
           <button type="button" class="btn btn-secondary" data-close="true">Close</button>
         </div>
       </div>
@@ -185,22 +166,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
-
-    const toggleCartBtn = modal.querySelector('[data-toggle-cart]');
-    toggleCartBtn?.addEventListener('click', () => {
-      const selected = products.find((item) => item._id === product._id);
-      if (selected) {
-        const cart = getCart();
-        const inCartNow = cart.some((item) => item._id === product._id);
-        if (inCartNow) {
-          removeFromCart(product._id);
-          announceCartChange(`${product.name} removed from cart.`);
-        } else {
-          addToCart(selected);
-        }
-      }
-      closeModal();
-    });
 
     modal.querySelectorAll('[data-close]').forEach((button) => {
       button.addEventListener('click', closeModal);
@@ -212,58 +177,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!Array.isArray(products) || products.length === 0) {
       root.innerHTML = '<p class="warning-note">No products available right now.</p>';
-      updateCartBadge();
       return;
     }
 
-    const cart = getCart();
-
     root.innerHTML = products.map((product) => {
-      const isInCart = cart.some((item) => item._id === product._id);
       const mapSearch = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${product.name} shop Ahmedpur Latur Maharashtra`)}`;
       return `
         <article class="dashboard-card product-card">
           <div class="product-info">
             <div class="product-topline">
               <span class="category-badge">${product.category || 'Agriculture'}</span>
-              <span class="stock-pill ${hasStock(product) ? 'in-stock' : 'out-stock'}">${product.availability || (hasStock(product) ? 'In stock' : 'Verify availability')}</span>
+              <span class="stock-pill verify">${product.availability || 'Confirm with a local seller'}</span>
             </div>
             <h3>${product.name}</h3>
             <div class="price-row">
               <span class="price-tag">${priceText(product)}</span>
               <span class="market-tag-line">${marketPriceText(product)}</span>
             </div>
-            <p class="product-meta"><i class="fa-solid fa-location-dot"></i> ${product.location || 'Ahmedpur Market, Latur'}</p>
-            <p class="product-meta"><i class="fa-solid fa-store"></i> ${product.seller || 'No seller listing verified'}</p>
-            <p class="product-meta"><i class="fa-solid fa-phone"></i> ${product.sellerPhone ? `<a href="tel:${product.sellerPhone}">${product.sellerPhone}</a>` : 'Seller phone not publicly configured'}</p>
             <p class="product-description">${product.description || 'Product information is currently unavailable.'}</p>
             <div class="product-specs">
-              <span><i class="fa-solid fa-box"></i> ${hasStock(product) ? `${product.stock} available` : 'Live stock verification required'}</span>
+              <span><i class="fa-solid fa-box"></i> Stock not verified</span>
               <span><i class="fa-solid fa-indian-rupee-sign"></i> ${product.unit || 'unit'}</span>
             </div>
             <div class="cta-row product-actions">
-              <a class="btn btn-light" href="${mapSearch}" target="_blank" rel="noopener noreferrer">Find local sellers</a>
-              <button class="btn btn-primary add-cart-btn" type="button" data-id="${product._id}" ${!isInCart && !hasStock(product) ? 'disabled' : ''}>${isInCart ? 'Remove' : hasStock(product) ? 'Add to Cart' : 'Verify Availability'}</button>
-              <button class="btn btn-secondary detail-btn" type="button" data-id="${product._id}">View Details</button>
+              <a class="btn btn-light" href="${mapSearch}" target="_blank" rel="noopener noreferrer">Find local sellers on Maps</a>
+              <button class="btn btn-primary detail-btn" type="button" data-id="${product._id}">Product details</button>
             </div>
           </div>
         </article>
       `;
     }).join('');
-
-    root.querySelectorAll('.add-cart-btn').forEach((button) => {
-      button.addEventListener('click', () => {
-        const selected = products.find((item) => item._id === button.dataset.id);
-        if (!selected) return;
-        const isCurrentlyInCart = getCart().some((item) => item._id === selected._id);
-        if (isCurrentlyInCart) {
-          removeFromCart(selected._id);
-          announceCartChange(`${selected.name} removed from cart.`);
-        } else {
-          addToCart(selected);
-        }
-      });
-    });
 
     root.querySelectorAll('.detail-btn').forEach((button) => {
       button.addEventListener('click', () => {
@@ -272,19 +215,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
 
-    updateCartBadge();
     document.dispatchEvent(new CustomEvent('nimbus-products-rendered'));
   };
 
   try {
-    const response = await fetch(window.NimbusApi?.url?.('/api/products') || '/api/products');
+    const response = await window.NimbusApi.request('/api/products');
     products = await response.json();
     renderProducts();
     window.setTimeout(() => window.NimbusTranslate?.(), 0);
   } catch (error) {
     console.error(error);
     root.innerHTML = '<p class="warning-note">Unable to load products.</p>';
-    updateCartBadge();
   }
 
   if (modal) {
@@ -298,7 +239,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     closeButton?.addEventListener('click', closeModal);
   }
 
-  updateCartBadge();
   document.addEventListener('nimbus-language-changed', () => {
     if (products.length) {
       renderProducts();

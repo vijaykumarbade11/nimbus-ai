@@ -27,21 +27,40 @@
         </nav>
       </aside>
       <main class="main-panel">
-        <div class="page-header"><h1>Farmer Profile</h1></div>
-        <div class="dashboard-card">
-          <p><strong>Name:</strong> Farmer profile not available</p>
-          <p><strong>Mobile Number:</strong> Not available</p>
-          <p><strong>Village:</strong> Not available</p>
-          <p><strong>Taluka:</strong> Not available</p>
-          <p><strong>District:</strong> Not available</p>
-          <p><strong>State:</strong> Not available</p>
+        <div class="page-header">
+          <div>
+            <p class="section-kicker">Farmer details</p>
+            <h1>Farmer Profile</h1>
+            <p class="page-intro">Save your details on this device. They will remain available in this browser when you return.</p>
+          </div>
         </div>
+        <form id="profileForm" class="dashboard-card stack-form">
+          <p id="profileStatus" class="form-status" role="status" aria-live="polite"></p>
+          <div class="form-grid profile-form-grid">
+            <label for="profileName">Full name<input id="profileName" name="name" autocomplete="name" maxlength="100" required /></label>
+            <label for="profileMobile">Mobile Number<input id="profileMobile" name="mobile" type="tel" autocomplete="tel" /></label>
+            <label for="profileVillage">Village<select id="profileVillage" name="village" required></select></label>
+            <label for="profileTaluka">Taluka<input id="profileTaluka" name="taluka" required /></label>
+            <label for="profileDistrict">District<input id="profileDistrict" name="district" required /></label>
+            <label for="profileState">State<input id="profileState" name="state" required /></label>
+            <label for="profileLanguage">Preferred language<select id="profileLanguage" name="language" required><option value="mr">मराठी</option><option value="hi">हिंदी</option><option value="en">English</option></select></label>
+            <label for="profileFarmSize">Farm size<input id="profileFarmSize" name="farmSize" maxlength="40" /></label>
+            <label for="profileCrops">Main crops (comma-separated)<input id="profileCrops" name="mainCrops" maxlength="500" /></label>
+            <label for="profileSoil">Soil type<input id="profileSoil" name="soilType" maxlength="100" /></label>
+            <label for="profileIrrigation">Irrigation type<input id="profileIrrigation" name="irrigationType" maxlength="100" /></label>
+          </div>
+          <div class="profile-actions">
+            <button class="btn btn-primary" type="submit">Save Profile</button>
+          </div>
+        </form>
       </main>
     </div>
     <footer class="site-footer">
       <strong>Nimbus AI</strong> created by BRB Technology · Copyright © 2026 BRB Technology. All rights reserved. · <a href="mailto:vijaycbade@gmail.com">vijaycbade@gmail.com</a>
     </footer>
+    <script src="js/api-config.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/village-data.js"></script>
     <script src="js/profile.js"></script>
   </body>
 </html>

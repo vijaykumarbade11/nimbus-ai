@@ -1,27 +1,36 @@
 const express = require('express');
+const { resolveAhmedpurVillage } = require('../services/weatherService');
 const { getSoilData, DEFAULT_SOIL_LOCATION } = require('../services/soilService');
 
 const router = express.Router();
 
-const getRequestedLocation = (req) => {
+const getRequestedLocation = async (req) => {
+  const hasLatitude = req.query.lat !== undefined;
+  const hasLongitude = req.query.lon !== undefined;
   const latitude = Number(req.query.lat);
   const longitude = Number(req.query.lon);
-  const valid = Number.isFinite(latitude) && Number.isFinite(longitude)
-    && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+  if (hasLatitude !== hasLongitude || (hasLatitude && (
+    !Number.isFinite(latitude) || !Number.isFinite(longitude)
+    || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180
+  ))) {
+    throw Object.assign(new Error('Provide valid latitude and longitude coordinates.'), { status: 400 });
+  }
 
-  return valid
-    ? { ...DEFAULT_SOIL_LOCATION, latitude, longitude, name: 'Visitor location' }
-    : DEFAULT_SOIL_LOCATION;
+  if (hasLatitude) return { ...DEFAULT_SOIL_LOCATION, latitude, longitude, name: 'Visitor location' };
+  if (req.query.village) return resolveAhmedpurVillage(req.query.village);
+  return DEFAULT_SOIL_LOCATION;
 };
 
 router.get('/current', async (req, res) => {
   try {
-    res.json(await getSoilData(getRequestedLocation(req)));
+    res.json(await getSoilData(await getRequestedLocation(req)));
   } catch (error) {
-    res.status(503).json({
+    res.status(error.status || (error.code === 'LOCATION_NOT_FOUND' ? 422 : 503)).json({
       source: 'NONE',
-      error: 'Public soil data is temporarily unavailable.',
-      location: getRequestedLocation(req)
+      error: error.code === 'LOCATION_NOT_FOUND' || error.status
+        ? error.message
+        : 'Public soil data is temporarily unavailable.',
+      location: DEFAULT_SOIL_LOCATION
     });
   }
 });

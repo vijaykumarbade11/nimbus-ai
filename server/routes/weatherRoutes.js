@@ -4,22 +4,44 @@ const { DEFAULT_LOCATION } = require('../services/weatherService');
 const router = express.Router();
 
 const getRequestedLocation = async (req) => {
-  if (req.query.village) {
-    return resolveAhmedpurVillage(req.query.village);
-  }
-
+  const hasLatitude = req.query.lat !== undefined;
+  const hasLongitude = req.query.lon !== undefined;
   const latitude = Number(req.query.lat);
   const longitude = Number(req.query.lon);
-  const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude) && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+  if (hasLatitude !== hasLongitude || (hasLatitude && (
+    !Number.isFinite(latitude) || !Number.isFinite(longitude)
+    || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180
+  ))) {
+    throw Object.assign(new Error('Provide valid latitude and longitude coordinates.'), { status: 400 });
+  }
 
-  if (!hasCoordinates) return DEFAULT_LOCATION;
+  if (!hasLatitude) {
+    return req.query.village ? resolveAhmedpurVillage(req.query.village) : DEFAULT_LOCATION;
+  }
 
-  return resolveLocationName({
+  return {
     ...DEFAULT_LOCATION,
     latitude,
     longitude,
     name: 'Visitor location'
-  });
+  };
+};
+
+const getWeatherForRequest = async (req) => {
+  const location = await getRequestedLocation(req);
+  if (location.name !== 'Visitor location') return getCurrentWeather(location);
+
+  const locationName = resolveLocationName(location);
+  const nameOrFallback = Promise.race([
+    locationName,
+    new Promise((resolve) => setTimeout(() => resolve(location), 1500))
+  ]);
+  const [weather, resolvedLocation] = await Promise.all([
+    getCurrentWeather(location),
+    nameOrFallback
+  ]);
+  if (weather?.location?.name === 'Visitor location') weather.location = resolvedLocation;
+  return weather;
 };
 
 const respondWithWeather = async (res, loader, key) => {
@@ -37,35 +59,34 @@ const respondWithWeather = async (res, loader, key) => {
 
     return res.json(data[key] ?? data);
   } catch (error) {
-    const status = error.code === 'LOCATION_NOT_FOUND' ? 422 : 503;
+    const status = error.status || (error.code === 'LOCATION_NOT_FOUND' ? 422 : 503);
     return res.status(status).json({ error: error.message || 'Weather location could not be resolved.' });
   }
 };
 
 router.get('/current', async (req, res) => {
   try {
-    const location = await getRequestedLocation(req);
-    const data = await getCurrentWeather(location);
+    const data = await getWeatherForRequest(req);
     if (data && data.error) {
       return res.status(503).json(data);
     }
     res.json(data);
   } catch (error) {
-    const status = error.code === 'LOCATION_NOT_FOUND' ? 422 : 503;
+    const status = error.status || (error.code === 'LOCATION_NOT_FOUND' ? 422 : 503);
     res.status(status).json({ error: error.message || 'Weather location could not be resolved.' });
   }
 });
 
 router.get('/hourly', async (req, res) => {
-  await respondWithWeather(res, async () => getCurrentWeather(await getRequestedLocation(req)), 'hourly');
+  await respondWithWeather(res, async () => getWeatherForRequest(req), 'hourly');
 });
 
 router.get('/forecast', async (req, res) => {
-  await respondWithWeather(res, async () => getCurrentWeather(await getRequestedLocation(req)), 'forecast');
+  await respondWithWeather(res, async () => getWeatherForRequest(req), 'forecast');
 });
 
 router.get('/alerts', async (req, res) => {
-  await respondWithWeather(res, async () => getCurrentWeather(await getRequestedLocation(req)), 'alerts');
+  await respondWithWeather(res, async () => getWeatherForRequest(req), 'alerts');
 });
 
 module.exports = router;

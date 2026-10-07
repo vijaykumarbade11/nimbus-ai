@@ -4,6 +4,28 @@ const translationSourceAttributesByElement = new WeakMap();
 
 const commonTranslations = {
   'Settings': { mr: 'सेटिंग्ज', hi: 'सेटिंग्स' },
+  'Ask Nimbus AI about your crop': { mr: 'तुमच्या पिकाबद्दल Nimbus AI ला विचारा', hi: 'अपनी फसल के बारे में Nimbus AI से पूछें' },
+  'Ask a follow-up about your crop, symptoms, irrigation, or field work. Replies use current weather and a regional soil estimate; they are unavailable if the AI provider or required evidence cannot be reached.': { mr: 'तुमचे पीक, लक्षणे, सिंचन किंवा शेतीकाम याबद्दल पुढील प्रश्न विचारा. उत्तरे सध्याचे हवामान व प्रादेशिक मातीचा अंदाज वापरतात; एआय सेवा किंवा आवश्यक पुरावे उपलब्ध नसल्यास उत्तर मिळणार नाही.', hi: 'अपनी फसल, लक्षण, सिंचाई या खेत के काम पर आगे सवाल पूछें। जवाब वर्तमान मौसम और क्षेत्रीय मिट्टी के अनुमान पर आधारित होंगे; AI सेवा या जरूरी साक्ष्य उपलब्ध न हों तो जवाब नहीं मिलेगा।' },
+  'To enable chat answers, the site owner must configure OPENAI_API_KEY as a backend secret and restart or redeploy the server. The chatbot will not show sample or made-up advice while it is unavailable.': { mr: 'चॅटची उत्तरे सुरू करण्यासाठी साइट मालकाने OPENAI_API_KEY हा बॅकएंड सिक्रेट म्हणून सेट करून सर्व्हर पुन्हा सुरू किंवा डिप्लॉय करावा. सेवा उपलब्ध नसताना चॅटबॉट नमुना किंवा बनावट सल्ला दाखवणार नाही.', hi: 'चैट जवाब चालू करने के लिए साइट मालिक को OPENAI_API_KEY बैकएंड सीक्रेट के रूप में सेट करके सर्वर फिर से शुरू या डिप्लॉय करना होगा। उपलब्ध न होने पर चैटबॉट नमूना या मनगढ़ंत सलाह नहीं दिखाएगा।' },
+  'Your crop details and field location will be included when available. Ask one specific question to begin.': { mr: 'उपलब्ध असल्यास तुमच्या पिकाची माहिती आणि शेताचे स्थान समाविष्ट केले जाईल. सुरुवात करण्यासाठी एक नेमका प्रश्न विचारा.', hi: 'उपलब्ध होने पर आपकी फसल का विवरण और खेत का स्थान शामिल किया जाएगा। शुरू करने के लिए एक स्पष्ट सवाल पूछें।' },
+  'For example: Should I irrigate today given this week\'s forecast?': { mr: 'उदाहरण: या आठवड्याच्या अंदाजानुसार आज सिंचन करावे का?', hi: 'उदाहरण: इस सप्ताह के पूर्वानुमान के अनुसार क्या आज सिंचाई करनी चाहिए?' },
+  'Do not rely on a chatbot for pesticide doses, emergencies, or a confirmed diagnosis. Verify high-impact decisions with a local agriculture expert.': { mr: 'कीटकनाशकाच्या मात्रेसाठी, आपत्कालीन परिस्थितीत किंवा निश्चित निदानासाठी चॅटबॉटवर अवलंबून राहू नका. महत्त्वाचे निर्णय स्थानिक कृषी तज्ज्ञांकडून तपासा.', hi: 'कीटनाशक की खुराक, आपात स्थिति या पक्के निदान के लिए चैटबॉट पर निर्भर न रहें। महत्वपूर्ण फैसलों की पुष्टि स्थानीय कृषि विशेषज्ञ से करें।' },
+  'Your question': { mr: 'तुमचा प्रश्न', hi: 'आपका सवाल' },
+  'Ask Nimbus AI': { mr: 'Nimbus AI ला विचारा', hi: 'Nimbus AI से पूछें' },
+  'Evidence-based AI': { mr: 'पुराव्यावर आधारित AI', hi: 'साक्ष्य-आधारित AI' },
+  'Checking weather and soil evidence before asking Nimbus AI…': { mr: 'Nimbus AI ला विचारण्यापूर्वी हवामान आणि मातीचे पुरावे तपासत आहोत…', hi: 'Nimbus AI से पूछने से पहले मौसम और मिट्टी के साक्ष्य जाँच रहे हैं…' },
+  'To improve this guidance, tell me:': { mr: 'हे मार्गदर्शन अधिक उपयुक्त करण्यासाठी सांगा:', hi: 'इस मार्गदर्शन को बेहतर करने के लिए बताएं:' },
+  'Evidence checked': { mr: 'तपासलेले पुरावे', hi: 'जाँचे गए साक्ष्य' },
+  'No fallback or demo answer was generated.': { mr: 'कोणतेही पर्यायी किंवा डेमो उत्तर तयार केले नाही.', hi: 'कोई वैकल्पिक या डेमो उत्तर नहीं बनाया गया।' },
+  'All reported crops': { mr: 'सर्व नोंदवलेली पिके', hi: 'सभी रिपोर्ट की गई फसलें' },
+  'Minimum price': { mr: 'किमान भाव', hi: 'न्यूनतम भाव' },
+  'Maximum price': { mr: 'कमाल भाव', hi: 'अधिकतम भाव' },
+  'Modal price': { mr: 'प्रचलित भाव', hi: 'प्रचलित भाव' },
+  'Live mandi sale rates are shown below for crops with a public report, including reported varieties and prices. Seed, fertilizer, machinery, and other shop prices are not published by a verified Ahmedpur seller feed; check the current quote with a local shop before purchasing.': { mr: 'सार्वजनिक अहवाल उपलब्ध असलेल्या पिकांचे बाजार समितीतील विक्री दर व नोंदवलेले वाण खाली दिले आहेत. बियाणे, खते, यंत्रसामग्री व इतर दुकानांच्या किमतींसाठी अहमदपूरमधील पडताळलेला विक्रेता स्रोत उपलब्ध नाही; खरेदीपूर्वी स्थानिक दुकानाकडून आजचा दर विचारा.', hi: 'सार्वजनिक रिपोर्ट वाले फसलों के मंडी बिक्री भाव और दर्ज किस्में नीचे हैं। बीज, खाद, मशीनरी और अन्य दुकान कीमतों के लिए अहमदपुर का सत्यापित विक्रेता स्रोत उपलब्ध नहीं है; खरीदने से पहले स्थानीय दुकान से आज का भाव पूछें।' },
+  'Input products below are shown with “Seller quote required” when no verified current Ahmedpur price is available. Use the shop search above to request a brand-, pack-size-, and date-specific quote.': { mr: 'अहमदपूरमधील आजची पडताळलेली किंमत उपलब्ध नसल्यास खालील कृषी साहित्याला “विक्रेत्याकडून दर घ्या” असे दाखवले आहे. ब्रँड, पॅकचे वजन आणि तारीख नमूद करून दरासाठी वरील दुकान शोध वापरा.', hi: 'अहमदपुर की सत्यापित आज की कीमत उपलब्ध न होने पर नीचे कृषि उत्पादों के लिए “विक्रेता से भाव लें” दिखाया जाता है। ब्रांड, पैक आकार और तारीख सहित भाव पूछने के लिए ऊपर दुकान खोजें।' },
+  'Seller quote required': { mr: 'विक्रेत्याकडून दर घ्या', hi: 'विक्रेता से भाव लें' },
+  'No verified live Ahmedpur price': { mr: 'अहमदपूरचा आजचा पडताळलेला दर उपलब्ध नाही', hi: 'अहमदपुर का सत्यापित आज का भाव उपलब्ध नहीं है' },
+  'Mandi prices are market-reported values, usually ₹ per quintal; variety details and report dates may be missing in the source. Ahmedpur-specific prices appear only when listed. Confirm the current rate with your APMC before selling.': { mr: 'बाजारभाव हे बाजारातील नोंदवलेले दर आहेत; सहसा रुपये प्रति क्विंटल. स्रोतामध्ये वाणाचा तपशील किंवा अहवालाची तारीख नसू शकते. अहमदपूरचे दर स्रोतामध्ये नोंद असल्यासच दिसतील. विक्रीपूर्वी APMC कडून आजचा दर तपासा.', hi: 'मंडी भाव बाजार में दर्ज मूल्य हैं, आमतौर पर रुपये प्रति क्विंटल; स्रोत में किस्म और रिपोर्ट की तारीख नहीं हो सकती। अहमदपुर के भाव तभी दिखते हैं जब स्रोत में दर्ज हों। बेचने से पहले APMC से आज का भाव पक्का करें।' },
   'Website language': { mr: 'वेबसाइटची भाषा', hi: 'वेबसाइट की भाषा' },
   'Theme': { mr: 'थीम', hi: 'थीम' },
   'Use device setting': { mr: 'डिव्हाइसची सेटिंग वापरा', hi: 'डिवाइस सेटिंग का उपयोग करें' },
@@ -16,9 +38,6 @@ const commonTranslations = {
   'Agriculture Products': { mr: 'कृषी उत्पाद', hi: 'कृषि उत्पाद' },
   'Farmer Profile': { mr: 'शेतकरी प्रोफाइल', hi: 'किसान प्रोफाइल' },
   'Mobile Number': { mr: 'मोबाइल नंबर', hi: 'मोबाइल नंबर' },
-  'Farmer Login': { mr: 'शेतकरी लॉगिन', hi: 'किसान लॉगिन' },
-  'Login': { mr: 'लॉगिन', hi: 'लॉगिन' },
-  'Logout': { mr: 'बाहेर पडा', hi: 'लॉगआउट' },
   'Crop': { mr: 'पीक', hi: 'फसल' },
   'Variety': { mr: 'वाण', hi: 'किस्म' },
   'Sowing Date': { mr: 'पेरणीची तारीख', hi: 'बुवाई की तारीख' },
@@ -86,6 +105,11 @@ const commonTranslations = {
   , 'Unable to load schemes. Please verify the official government portals directly.': { mr: 'योजना लोड करता आल्या नाहीत. कृपया अधिकृत सरकारी पोर्टल तपासा.', hi: 'योजनाएं लोड नहीं हो सकीं। कृपया आधिकारिक सरकारी पोर्टल पर जांच करें।' }
   , 'Live source:': { mr: 'थेट स्रोत:', hi: 'लाइव स्रोत:' }
   , 'Open-Meteo public weather data': { mr: 'Open-Meteo सार्वजनिक हवामान डेटा', hi: 'Open-Meteo सार्वजनिक मौसम डेटा' }
+  , 'OpenWeather model': { mr: 'OpenWeather हवामान मॉडेल', hi: 'OpenWeather मौसम मॉडल' }
+  , 'Requesting device location… Choose a village as a fallback if location access is unavailable.': { mr: 'डिव्हाइसचे स्थान घेत आहोत… स्थान उपलब्ध नसल्यास पर्यायी गाव निवडा.', hi: 'डिवाइस का स्थान प्राप्त हो रहा है… स्थान उपलब्ध न होने पर गांव चुनें।' }
+  , 'Using device GPS for location-based estimates and advisory requests.': { mr: 'स्थानाधारित अंदाज आणि सल्ला विनंतीसाठी डिव्हाइस GPS वापरत आहोत.', hi: 'स्थान-आधारित अनुमानों और सलाह अनुरोधों के लिए डिवाइस GPS का उपयोग हो रहा है।' }
+  , 'GPS is unavailable. Choose your village as a fallback.': { mr: 'GPS उपलब्ध नाही. पर्यायी म्हणून तुमचे गाव निवडा.', hi: 'GPS उपलब्ध नहीं है। विकल्प के रूप में अपना गांव चुनें।' }
+  , 'Allow device location or choose your village as a fallback.': { mr: 'डिव्हाइसचे स्थान मंजूर करा किंवा पर्यायी गाव निवडा.', hi: 'डिवाइस स्थान की अनुमति दें या विकल्प के रूप में गांव चुनें।' }
   , 'Live source unavailable; retrying official and public providers later.': { mr: 'थेट स्रोत उपलब्ध नाही; अधिकृत आणि सार्वजनिक स्रोत पुन्हा तपासले जातील.', hi: 'लाइव स्रोत उपलब्ध नहीं; आधिकारिक और सार्वजनिक स्रोत बाद में फिर जांचे जाएंगे।' }
   , 'Weather update': { mr: 'हवामान अपडेट', hi: 'मौसम अपडेट' }
   , 'Public weather data': { mr: 'सार्वजनिक हवामान डेटा', hi: 'सार्वजनिक मौसम डेटा' }
@@ -162,6 +186,10 @@ const commonTranslations = {
   , 'Requesting device location and area weather…': { mr: 'डिव्हाइसचे स्थान आणि परिसरातील हवामान मिळवत आहोत…', hi: 'डिवाइस का स्थान और क्षेत्र का मौसम प्राप्त हो रहा है…' }
   , 'Village in Ahmedpur taluka': { mr: 'अहमदपूर तालुक्यातील गाव', hi: 'अहमदपुर तालुका का गांव' }
   , 'Choose an Ahmedpur taluka village': { mr: 'अहमदपूर तालुक्यातील गाव निवडा', hi: 'अहमदपुर तालुका का गांव चुनें' }
+  , 'Check weather': { mr: 'हवामान तपासा', hi: 'मौसम जांचें' }
+  , 'Village selected. Press Check weather to load its forecast.': { mr: 'गाव निवडले आहे. त्याचा अंदाज पाहण्यासाठी हवामान तपासा बटण दाबा.', hi: 'गांव चुना गया है। उसका पूर्वानुमान देखने के लिए मौसम जांचें बटन दबाएं।' }
+  , 'Choose an Ahmedpur taluka village first.': { mr: 'प्रथम अहमदपूर तालुक्यातील गाव निवडा.', hi: 'पहले अहमदपुर तालुका का गांव चुनें।' }
+  , 'Weather refreshes periodically while this page is open. It does not provide guaranteed emergency alerts or push updates when closed.': { mr: 'हे पृष्ठ उघडे असताना हवामान वेळोवेळी अद्ययावत होते. पृष्ठ बंद असताना आपत्कालीन सूचना किंवा पुश अपडेटची हमी नाही.', hi: 'यह पेज खुला रहने पर मौसम समय-समय पर अपडेट होता है। पेज बंद होने पर आपातकालीन चेतावनी या पुश अपडेट की गारंटी नहीं है।' }
   , 'Use my current location': { mr: 'माझे सध्याचे स्थान वापरा', hi: 'मेरा वर्तमान स्थान उपयोग करें' }
   , 'Current Weather': { mr: 'सध्याचे हवामान', hi: 'वर्तमान मौसम' }
   , 'Feels like': { mr: 'जाणवणारे तापमान', hi: 'अनुभूत तापमान' }
@@ -250,9 +278,7 @@ const commonTranslations = {
   , 'View source report': { mr: 'मूळ अहवाल पहा', hi: 'मूल रिपोर्ट देखें' }
   , 'Today’s Mandi Rates': { mr: 'आजचे बाजारभाव', hi: 'आज के मंडी भाव' }
   , 'Farmers': { mr: 'शेतकरी', hi: 'किसान' }
-  , 'Farmer Login': { mr: 'शेतकरी लॉगिन', hi: 'किसान लॉगिन' }
   , 'Mobile Number': { mr: 'मोबाइल क्रमांक', hi: 'मोबाइल नंबर' }
-  , 'Allow location access after login for village-specific weather and advisories. Your exact location is used only on this device for personalization.': { mr: 'गावानुसार हवामान व सल्ल्यासाठी लॉगिननंतर स्थानाची परवानगी द्या. वैयक्तिक अनुभवासाठी तुमचे अचूक स्थान फक्त या डिव्हाइसवर वापरले जाते.', hi: 'गांव-विशिष्ट मौसम और सलाह के लिए लॉगिन के बाद स्थान की अनुमति दें। वैयक्तिकरण के लिए आपका सटीक स्थान केवल इसी डिवाइस पर उपयोग होता है।' }
   , 'Enter your mobile number.': { mr: 'तुमचा मोबाइल क्रमांक भरा.', hi: 'अपना मोबाइल नंबर दर्ज करें।' }
   , 'Name:': { mr: 'नाव:', hi: 'नाम:' }
   , 'Village:': { mr: 'गाव:', hi: 'गांव:' }
@@ -407,7 +433,6 @@ const commonTranslations = {
   , 'Weather Forecast': { mr: 'हवामान अंदाज', hi: 'मौसम पूर्वानुमान' }
   , 'Government Schemes': { mr: 'शासकीय योजना', hi: 'सरकारी योजनाएँ' }
   , 'Agriculture Products': { mr: 'कृषी उत्पाद', hi: 'कृषि उत्पाद' }
-  , 'Logout': { mr: 'बाहेर पडा', hi: 'लॉगआउट' }
   , 'Dashboard': { mr: 'डॅशबोर्ड', hi: 'डैशबोर्ड' }
   , 'Profile': { mr: 'प्रोफाइल', hi: 'प्रोफाइल' }
   , 'English': { mr: 'English', hi: 'English' }
@@ -415,8 +440,6 @@ const commonTranslations = {
   , 'हिंदी': { mr: 'हिंदी', hi: 'हिंदी' }
   , 'Farmers': { mr: 'शेतकरी', hi: 'किसान' }
   , 'Rain Prob.': { mr: 'पावसाची शक्यता', hi: 'बारिश की संभावना' }
-  , 'Login': { mr: 'लॉगिन', hi: 'लॉगिन' }
-  , 'Farmer Login': { mr: 'शेतकरी लॉगिन', hi: 'किसान लॉगिन' }
   , 'Mobile Number': { mr: 'मोबाइल क्रमांक', hi: 'मोबाइल नंबर' }
   , 'Farmer Profile': { mr: 'शेतकरी प्रोफाइल', hi: 'किसान प्रोफाइल' }
   , 'Village': { mr: 'गाव', hi: 'गांव' }
@@ -479,18 +502,68 @@ const commonTranslations = {
   , 'Weather | Nimbus AI': { mr: 'हवामान | Nimbus AI', hi: 'मौसम | Nimbus AI' }
   , 'Dashboard | Nimbus AI': { mr: 'डॅशबोर्ड | Nimbus AI', hi: 'डैशबोर्ड | Nimbus AI' }
   , 'Crop Advisory | Nimbus AI': { mr: 'पीक सल्ला | Nimbus AI', hi: 'फसल सलाह | Nimbus AI' }
-  , 'Login | Nimbus AI': { mr: 'लॉगिन | Nimbus AI', hi: 'लॉगिन | Nimbus AI' }
   , 'Products | Nimbus AI': { mr: 'उत्पादने | Nimbus AI', hi: 'उत्पाद | Nimbus AI' }
   , 'Government Schemes | Nimbus AI': { mr: 'शासकीय योजना | Nimbus AI', hi: 'सरकारी योजनाएँ | Nimbus AI' }
   , 'Profile | Nimbus AI': { mr: 'प्रोफाइल | Nimbus AI', hi: 'प्रोफाइल | Nimbus AI' }
+  , 'Full name': { mr: 'पूर्ण नाव', hi: 'पूरा नाम' }
+  , 'Village': { mr: 'गाव', hi: 'गांव' }
+  , 'Choose your village': { mr: 'तुमचे गाव निवडा', hi: 'अपना गांव चुनें' }
+  , 'Taluka': { mr: 'तालुका', hi: 'तहसील' }
+  , 'District': { mr: 'जिल्हा', hi: 'जिला' }
+  , 'State': { mr: 'राज्य', hi: 'राज्य' }
+  , 'Preferred language': { mr: 'पसंतीची भाषा', hi: 'पसंदीदा भाषा' }
+  , 'Farm size (optional)': { mr: 'शेताचे क्षेत्र (पर्यायी)', hi: 'खेत का आकार (वैकल्पिक)' }
+  , 'Main crops (optional)': { mr: 'मुख्य पिके (पर्यायी)', hi: 'मुख्य फसलें (वैकल्पिक)' }
+  , 'Soil type (optional)': { mr: 'मातीचा प्रकार (पर्यायी)', hi: 'मिट्टी का प्रकार (वैकल्पिक)' }
+  , 'Irrigation type (optional)': { mr: 'सिंचनाचा प्रकार (पर्यायी)', hi: 'सिंचाई का प्रकार (वैकल्पिक)' }
+  , 'Your farmer details are saved to the connected account database and can be loaded again when you sign in.': { mr: 'तुमची शेतकरी माहिती जोडलेल्या खाते डेटाबेसमध्ये जतन होते आणि पुन्हा लॉगिन केल्यावर मिळते.', hi: 'आपके किसान विवरण जुड़े हुए खाता डेटाबेस में सहेजे जाते हैं और दोबारा लॉगिन करने पर मिलते हैं।' }
+  , 'Save Profile': { mr: 'प्रोफाइल जतन करा', hi: 'प्रोफाइल सहेजें' }
+  , 'Farmer details': { mr: 'शेतकरी माहिती', hi: 'किसान विवरण' }
+  , 'Save your details on this device. They will remain available in this browser when you return.': { mr: 'तुमची माहिती या डिव्हाइसवर जतन करा. पुन्हा आल्यावर या ब्राउझरमध्ये ती उपलब्ध असेल.', hi: 'अपना विवरण इस डिवाइस पर सहेजें। लौटने पर यह इसी ब्राउज़र में उपलब्ध रहेगा।' }
+  , 'Main crops (comma-separated)': { mr: 'मुख्य पिके (स्वल्पविरामाने वेगळी करा)', hi: 'मुख्य फसलें (अल्पविराम से अलग करें)' }
+  , 'Profile saved on this device.': { mr: 'प्रोफाइल या डिव्हाइसवर जतन केली.', hi: 'प्रोफाइल इस डिवाइस पर सहेजी गई।' }
+  , 'Your saved profile has been loaded.': { mr: 'तुमची जतन केलेली प्रोफाइल लोड झाली.', hi: 'आपकी सहेजी गई प्रोफाइल लोड हो गई है।' }
+  , 'Saving your profile…': { mr: 'तुमची प्रोफाइल जतन होत आहे…', hi: 'आपकी प्रोफाइल सहेजी जा रही है…' }
+  , 'Could not load farmer profile.': { mr: 'शेतकरी प्रोफाइल लोड करता आली नाही.', hi: 'किसान प्रोफाइल लोड नहीं हो सकी।' }
+  , 'Could not save farmer profile.': { mr: 'शेतकरी प्रोफाइल जतन करता आली नाही.', hi: 'किसान प्रोफाइल सहेजी नहीं जा सकी।' }
+  , 'Farmer registration is unavailable until the database is configured.': { mr: 'डेटाबेस जोडल्याशिवाय शेतकरी नोंदणी उपलब्ध नाही.', hi: 'डेटाबेस कॉन्फ़िगर होने तक किसान पंजीकरण उपलब्ध नहीं है।' }
+  , 'Farmer profile storage is unavailable until the database is connected.': { mr: 'डेटाबेस जोडल्याशिवाय शेतकरी प्रोफाइल जतन करता येणार नाही.', hi: 'डेटाबेस कनेक्ट होने तक किसान प्रोफाइल सहेजी नहीं जा सकती।' }
+  , 'An account already exists for this mobile number. Please log in.': { mr: 'या मोबाइल क्रमांकासाठी खाते आधीपासून आहे. कृपया लॉगिन करा.', hi: 'इस मोबाइल नंबर के लिए खाता पहले से है। कृपया लॉगिन करें।' }
+  , 'No account was found for this mobile number. Create an account first.': { mr: 'या मोबाइल क्रमांकासाठी खाते सापडले नाही. आधी खाते तयार करा.', hi: 'इस मोबाइल नंबर के लिए खाता नहीं मिला। पहले खाता बनाएं।' }
+  , 'Incorrect credentials.': { mr: 'मोबाइल क्रमांक किंवा पासवर्ड चुकीचा आहे.', hi: 'मोबाइल नंबर या पासवर्ड गलत है।' }
+  , 'Password must be between 8 and 128 characters.': { mr: 'पासवर्ड ८ ते १२८ अक्षरांचा असावा.', hi: 'पासवर्ड ८ से १२८ अक्षरों का होना चाहिए।' }
+  , 'Your profile and saved crop preferences load from your account. Save updated farmer details on the Profile page.': { mr: 'तुमची प्रोफाइल आणि जतन केलेली पीक पसंती खात्यातून लोड होते. शेतकरी माहिती प्रोफाइल पृष्ठावर अद्ययावत करा.', hi: 'आपकी प्रोफाइल और सहेजी गई फसल प्राथमिकताएं खाते से लोड होती हैं। किसान विवरण प्रोफाइल पेज पर अपडेट करें।' }
+  , 'The request failed. Please try again.': { mr: 'विनंती अयशस्वी झाली. कृपया पुन्हा प्रयत्न करा.', hi: 'अनुरोध विफल हुआ। कृपया फिर प्रयास करें।' }
+  , 'Could not load farmer profile.': { mr: 'शेतकरी प्रोफाइल लोड करता आली नाही.', hi: 'किसान प्रोफाइल लोड नहीं हो सकी।' }
+  , 'Could not save farmer profile.': { mr: 'शेतकरी प्रोफाइल जतन करता आली नाही.', hi: 'किसान प्रोफाइल सहेजी नहीं जा सकी।' }
 };
 
 const localHosts = new Set(['', 'localhost', '127.0.0.1', '[::1]']);
 const localFrontend = localHosts.has(window.location.hostname);
-const apiBase = window.NIMBUS_API_BASE || (localFrontend && window.location.port !== '5000' ? 'http://localhost:5000' : '');
+const configuredApiBase = String(window.NIMBUS_API_BASE || '').trim().replace(/\/+$/, '');
+const apiBase = configuredApiBase || (localFrontend && window.location.protocol === 'file:' ? 'http://localhost:5000' : '');
 
 window.NimbusApi = {
-  url: (path) => `${apiBase}${path}`
+  url: (path) => `${apiBase}${path}`,
+  request: async (path, options = {}) => {
+    const headers = new Headers(options.headers || {});
+    const response = await fetch(`${apiBase}${path}`, { ...options, headers });
+    const contentType = response.headers.get('content-type') || '';
+    if (!/\bapplication\/(?:[\w.+-]*\+)?json\b/i.test(contentType)) {
+      const bodyStart = (await response.clone().text()).trimStart().slice(0, 40);
+      const isHtml = /^(?:<!doctype\s+html|<html\b)/i.test(bodyStart);
+      const details = isHtml
+        ? 'The website received an HTML page instead of an API response. The frontend is not connected to the Nimbus backend. Deploy the Express server and serve the site from it, or set window.NIMBUS_API_BASE in client/js/api-config.js to the backend URL.'
+        : `The API returned an unsupported response type${contentType ? ` (${contentType})` : ''}.`;
+      throw new Error(`${details} Request: ${response.url || path}; HTTP ${response.status}.`);
+    }
+    try {
+      await response.clone().json();
+    } catch {
+      throw new Error(`The API returned invalid or incomplete JSON for ${path} (HTTP ${response.status}). Please retry or contact the site owner.`);
+    }
+    return response;
+  }
 };
 
 const getStoredFarmer = () => {
@@ -539,6 +612,9 @@ const buildWeatherUrl = (endpoint = '/api/weather/current') => {
   if (Number.isFinite(location?.latitude) && Number.isFinite(location?.longitude)) {
     params.set('lat', location.latitude);
     params.set('lon', location.longitude);
+  } else {
+    const farmer = getStoredFarmer();
+    if (farmer.village) params.set('village', farmer.village);
   }
 
   return params.toString() ? `${endpoint}?${params.toString()}` : endpoint;
@@ -647,15 +723,14 @@ const ensureLanguageSwitcher = () => {
     'crop-advisory.html': 'cropAdvisory',
     'schemes.html': 'schemes',
     'products.html': 'products',
-    'profile.html': 'profile',
-    'login.html': 'logout'
+    'profile.html': 'profile'
   };
   document.querySelectorAll('.sidebar-nav a').forEach((link) => {
     const key = navKeys[link.getAttribute('href')];
     if (key) link.dataset.uiKey = key;
   });
 
-  const header = document.querySelector('.topbar, .main-header, .page-header, .auth-card');
+  const header = document.querySelector('.topbar, .main-header, .page-header');
   if (!header) return;
 
   let controls = header.querySelector('.page-controls, .header-actions');
@@ -757,20 +832,7 @@ const ensureSettings = () => {
 
 window.NimbusTranslate = () => applyTranslations(false);
 
-const bindLogout = () => {
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (!logoutBtn) return;
-
-  logoutBtn.addEventListener('click', (event) => {
-    event.preventDefault();
-    localStorage.removeItem('nimbus-token');
-    localStorage.removeItem('nimbus-farmer');
-    window.location.href = 'login.html';
-  });
-};
-
 document.addEventListener('DOMContentLoaded', async () => {
-  bindLogout();
   ensureLanguageSwitcher();
   ensureSettings();
   applyTheme(localStorage.getItem('nimbus-theme') || 'system');

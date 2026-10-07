@@ -49,22 +49,12 @@
             <label>Irrigation Type<select name="irrigationType" required><option value="">Choose irrigation source</option><option>Rainfed</option><option>Open well</option><option>Borewell</option><option>Canal</option><option>Drip</option><option>Sprinkler</option><option>Flood / furrow</option><option>Other</option></select></label>
             <label>Current Crop Stage<select name="stage" required><option value="">Choose crop stage</option><option value="Land Preparation">Land Preparation</option><option value="Sowing">Sowing</option><option value="Vegetative Growth">Vegetative Growth</option><option value="Flowering">Flowering</option><option value="Pod / Boll Formation">Pod / Boll Formation</option><option value="Harvesting">Harvesting</option></select></label>
             <label>Observed problem / symptoms<textarea name="symptoms" rows="3" placeholder="Describe what you see, where it appears, and when it began. Enter “No visible symptoms” if none." required></textarea></label>
-            <label>Ahmedpur village<select name="village" id="villageSelect" required></select></label>
+            <label>Village fallback (if GPS is unavailable)<select name="village" id="villageSelect"></select></label>
           </div>
-            <section class="soil-test-fields" aria-labelledby="soilTestTitle">
-              <h3 id="soilTestTitle">Soil laboratory report</h3>
-              <p>Enter the results from your field’s latest soil test. The public soil map is only a regional estimate and cannot replace these measurements for nutrient advice.</p>
-              <div class="form-grid">
-                <label>Soil test date<input type="date" name="soilTestDate" required /></label>
-                <label>Soil pH<input type="number" name="soilPH" min="0" max="14" step="0.1" required /></label>
-                <label>Available nitrogen (kg/ha)<input type="number" name="availableNitrogen" min="0" step="0.1" required /></label>
-                <label>Available phosphorus (kg/ha)<input type="number" name="availablePhosphorus" min="0" step="0.1" required /></label>
-                <label>Available potassium (kg/ha)<input type="number" name="availablePotassium" min="0" step="0.1" required /></label>
-              </div>
-            </section>
+            <p id="fieldLocationStatus" class="warning-note" role="status">Requesting device location… Choose a village as a fallback if location access is unavailable.</p>
             <button type="submit" class="btn btn-primary">Build My Field Guidance</button>
           </form>
-          <p class="warning-note">Enter the exact variety printed on the seed packet. Suggestions are not an exhaustive official Maharashtra release list or a guarantee of local suitability or availability. Confirm the variety and seed lot with the agriculture department or an authorised dealer. Nutrient guidance requires the latest field soil-test values.</p>
+          <p class="warning-note">Enter the exact variety printed on the seed packet. Suggestions are not an exhaustive official Maharashtra release list or a guarantee of local suitability or availability. Confirm the variety and seed lot with the agriculture department or an authorised dealer. Soil-map values are regional estimates, not laboratory results; use a field test before nutrient decisions.</p>
           <div id="advisoryResult" class="result-box"></div>
         </section>
         <section id="scanPanel" class="advisory-panel" role="tabpanel" hidden>
@@ -80,7 +70,7 @@
               <h3>Before you act</h3>
               <ul class="quick-list">
                 <li>Photograph healthy and affected plants for comparison.</li>
-                <li>Record crop, variety, village, stage, and recent rain.</li>
+                <li>Record crop, variety, field location, stage, and recent rain.</li>
                 <li>Do not spray from a photo alone; confirm the cause first.</li>
               </ul>
               <button id="runScan" class="btn btn-secondary" type="button" disabled>Review Photo and Symptoms</button>
@@ -90,11 +80,29 @@
         </section>
         <section id="guidePanel" class="advisory-panel" role="tabpanel" hidden>
           <div class="guide-grid">
-            <article class="guide-card"><i class="fa-solid fa-seedling"></i><h3>Choose the field</h3><p>Select your Ahmedpur village, crop, stage, and variety. The guidance stays tied to the field context you provide.</p></article>
+            <article class="guide-card"><i class="fa-solid fa-seedling"></i><h3>Choose the field</h3><p>Allow device location or select your village, then provide crop, stage, and variety. The guidance stays tied to the field context you provide.</p></article>
             <article class="guide-card"><i class="fa-solid fa-cloud-sun-rain"></i><h3>Use current weather</h3><p>Check live public weather before irrigation or spraying. Avoid field operations during rain, strong wind, or wet foliage.</p></article>
-            <article class="guide-card"><i class="fa-solid fa-flask"></i><h3>Confirm soil and disease</h3><p>Public soil maps are regional estimates. Use a soil or plant laboratory result before major fertiliser or pesticide decisions.</p></article>
+            <article class="guide-card"><i class="fa-solid fa-flask"></i><h3>Confirm soil and disease</h3><p>Public soil maps are regional estimates, not field tests. Confirm soil nutrients and disease with a qualified local expert before major input decisions.</p></article>
           </div>
           <div id="soilAdvisoryCard" class="result-box"><p>Loading public soil estimate for the active location...</p></div>
+          <section class="crop-chat dashboard-card" aria-labelledby="cropChatTitle">
+            <div class="card-header">
+              <h2 id="cropChatTitle">Ask Nimbus AI about your crop</h2>
+              <span class="badge warning">Evidence-based AI</span>
+            </div>
+            <p class="page-intro">Ask a follow-up about your crop, symptoms, irrigation, or field work. Replies use current weather and a regional soil estimate; they are unavailable if the AI provider or required evidence cannot be reached.</p>
+            <p class="warning-note">To enable chat answers, the site owner must configure <code>OPENAI_API_KEY</code> as a backend secret and restart or redeploy the server. The chatbot will not show sample or made-up advice while it is unavailable.</p>
+            <div id="cropChatMessages" class="crop-chat-messages" role="log" aria-live="polite" aria-relevant="additions">
+              <p class="crop-chat-empty">Your crop details and field location will be included when available. Ask one specific question to begin.</p>
+            </div>
+            <form id="cropChatForm" class="crop-chat-form">
+              <label for="cropChatQuestion">Your question</label>
+              <textarea id="cropChatQuestion" name="question" rows="3" maxlength="1200" placeholder="For example: Should I irrigate today given this week's forecast?" required></textarea>
+              <button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Ask Nimbus AI</button>
+            </form>
+            <p id="cropChatStatus" class="form-status" role="status" aria-live="polite"></p>
+            <small>Do not rely on a chatbot for pesticide doses, emergencies, or a confirmed diagnosis. Verify high-impact decisions with a local agriculture expert.</small>
+          </section>
         </section>
       </main>
     </div>
@@ -102,6 +110,7 @@
     <footer class="site-footer">
       <strong>Nimbus AI</strong> created by BRB Technology · Copyright © 2026 BRB Technology. All rights reserved. · <a href="mailto:vijaycbade@gmail.com">vijaycbade@gmail.com</a>
     </footer>
+    <script src="js/api-config.js"></script>
     <script src="js/app.js"></script>
     <script src="js/village-data.js"></script>
     <script src="js/advisory.js"></script>

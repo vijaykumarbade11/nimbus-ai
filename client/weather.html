@@ -33,11 +33,15 @@
             <h1>Weather for Ahmedpur Taluka</h1>
             <p class="weather-source-note">Nimbus AI provides location-aware weather estimates and a five-day forecast to help farmers across Ahmedpur and nearby villages plan field work. Allow location access for a forecast centered near your device, or choose a village. Forecast models estimate conditions over an area and cannot guarantee exact conditions at an individual field.</p>
             <p id="weatherSource" class="weather-source-status" role="status">Requesting device location and area weather…</p>
+            <p class="weather-source-note">Weather refreshes periodically while this page is open. It does not provide guaranteed emergency alerts or push updates when closed.</p>
             <div class="weather-location-controls">
               <label class="weather-village-label" for="weatherVillage">Village in Ahmedpur taluka</label>
               <select id="weatherVillage" aria-label="Choose an Ahmedpur taluka village">
                 <option value="Ahmedpur">Ahmedpur</option>
               </select>
+              <button class="btn btn-primary" id="checkVillageWeather" type="button">
+                <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true"></i> Check weather
+              </button>
               <button class="btn btn-light" id="useCurrentWeatherLocation" type="button">
                 <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Use my current location
               </button>
@@ -68,6 +72,7 @@
     <footer class="site-footer">
       <strong>Nimbus AI</strong> created by BRB Technology · Copyright © 2026 BRB Technology. All rights reserved. · <a href="mailto:vijaycbade@gmail.com">vijaycbade@gmail.com</a>
     </footer>
+    <script src="js/api-config.js"></script>
     <script src="js/app.js"></script>
     <script src="js/village-data.js"></script>
     <script src="js/weather.js"></script>

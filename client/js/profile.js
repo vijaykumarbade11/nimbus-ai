@@ -1,21 +1,57 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const profileCard = document.querySelector('.dashboard-card');
-  if (!profileCard) return;
+  const form = document.getElementById('profileForm');
+  const status = document.getElementById('profileStatus');
+  const villageSelect = document.getElementById('profileVillage');
+  if (!form || !status || !villageSelect) return;
 
-  let farmer = {};
-  try {
-    farmer = JSON.parse(localStorage.getItem('nimbus-farmer') || '{}');
-  } catch (error) {
-    farmer = {};
-  }
+  const villages = window.AhmedpurVillages || ['Ahmedpur'];
+  villageSelect.replaceChildren(
+    new Option('Choose your village', ''),
+    ...villages.map((village) => new Option(village, village))
+  );
 
-  profileCard.innerHTML = `
-    <p><strong>Name:</strong> ${farmer.name || 'Farmer profile not available'}</p>
-    <p><strong>Mobile Number:</strong> ${farmer.mobile || 'Not available'}</p>
-    <p><strong>Village:</strong> ${farmer.village || 'Not available'}</p>
-    <p><strong>Taluka:</strong> ${farmer.taluka || 'Not available'}</p>
-    <p><strong>District:</strong> ${farmer.district || 'Not available'}</p>
-    <p><strong>State:</strong> ${farmer.state || 'Not available'}</p>
-    <p><strong>Preferred Language:</strong> ${farmer.language || 'Not available'}</p>
-  `;
+  const setFormValues = (farmer) => {
+    const profile = {
+      village: 'Ahmedpur',
+      taluka: 'Ahmedpur',
+      district: 'Latur',
+      state: 'Maharashtra',
+      language: localStorage.getItem('nimbus-language') || 'mr',
+      ...farmer
+    };
+    ['name', 'mobile', 'village', 'taluka', 'district', 'state', 'language', 'farmSize', 'soilType', 'irrigationType']
+      .forEach((field) => {
+        if (form.elements[field]) form.elements[field].value = profile[field] || '';
+      });
+    form.elements.mainCrops.value = Array.isArray(profile.mainCrops) ? profile.mainCrops.join(', ') : '';
+  };
+  const setStatus = (message, successful = false) => {
+    status.textContent = window.NimbusI18n?.t?.(message) || message;
+    status.classList.toggle('success', successful);
+  };
+
+  setFormValues(window.NimbusLocation?.getFarmer?.() || {});
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    setStatus('Saving your profile…');
+    const payload = Object.fromEntries(new FormData(form).entries());
+    payload.mainCrops = String(payload.mainCrops || '').split(',').map((crop) => crop.trim()).filter(Boolean);
+
+    try {
+      localStorage.setItem('nimbus-farmer', JSON.stringify(payload));
+      if (['mr', 'hi', 'en'].includes(payload.language)) {
+        localStorage.setItem('nimbus-language', payload.language);
+        window.NimbusTranslate?.();
+      }
+      setStatus('Profile saved on this device.', true);
+    } catch (error) {
+      setStatus(error.message || 'Could not save farmer profile.');
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
 });

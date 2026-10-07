@@ -3,18 +3,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const locale = () => window.NimbusI18n?.locale?.() || 'en-IN';
   const sourceEl = document.getElementById('weatherSource');
   const villageSelect = document.getElementById('weatherVillage');
+  const checkVillageButton = document.getElementById('checkVillageWeather');
   const currentLocationButton = document.getElementById('useCurrentWeatherLocation');
   const farmer = window.NimbusLocation?.getFarmer?.() || {};
   let deviceLocation = null;
   let locationFallbackMessage = '';
   let villageSelectedByUser = false;
   let requestId = 0;
+  let selectedVillagePending = false;
 
   if (villageSelect) {
     const villages = window.AhmedpurVillages || ['Ahmedpur'];
     villageSelect.replaceChildren(...villages.map((village) => new Option(village, village)));
     villageSelect.value = villages.includes(farmer.village) ? farmer.village : 'Ahmedpur';
   }
+
+  if (!currentLocationButton && !villageSelect) return;
 
   const setStatus = (message) => {
     if (sourceEl) sourceEl.textContent = message;
@@ -41,6 +45,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const loadWeather = async () => {
     const currentRequest = ++requestId;
+    const button = deviceLocation ? currentLocationButton : checkVillageButton;
+    if (button) button.disabled = true;
     const selectedLocation = deviceLocation ? 'your current location' : (villageSelect?.value || 'Ahmedpur');
     setStatus(deviceLocation
       ? t('Loading weather near your current location…')
@@ -57,7 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       const path = `/api/weather/current?${params}`;
-      const response = await fetch(window.NimbusApi?.url?.(path) || path, { signal: AbortSignal.timeout(25000) });
+      const response = await window.NimbusApi.request(path, { signal: AbortSignal.timeout(25000) });
       const data = await response.json();
       if (currentRequest !== requestId) return;
       if (!response.ok || data?.error) {
@@ -90,7 +96,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           ? `${(deviceLocation.accuracy / 1000).toLocaleString(locale(), { maximumFractionDigits: 1 })} km`
           : `${deviceLocation.accuracy.toLocaleString(locale())} m`}`
         : '';
-      const source = t(data.source === 'OPEN_METEO_PUBLIC' ? 'Open-Meteo forecast model' : (data.source || 'Weather provider'));
+      const source = t(data.source === 'OPEN_METEO_PUBLIC'
+        ? 'Open-Meteo forecast model'
+        : data.source === 'OPENWEATHERMAP' ? 'OpenWeather model' : (data.source || 'Weather provider'));
       const time = current.updatedAt ? new Date(current.updatedAt).toLocaleString(locale()) : '';
       const statusKey = accuracyValue && time
         ? '{location} · GPS accuracy ±{accuracy} · {source} · Model time {time}. Area estimates can differ from field measurements.'
@@ -135,12 +143,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (currentRequest !== requestId) return;
       console.warn('Weather fetch failed', error);
       renderUnavailable(error.message || 'Weather data could not be loaded. Please try again.');
+    } finally {
+      if (button) button.disabled = false;
     }
   };
 
   villageSelect?.addEventListener('change', () => {
     villageSelectedByUser = true;
     deviceLocation = null;
+    locationFallbackMessage = '';
+    selectedVillagePending = true;
+    setStatus(t('Village selected. Press Check weather to load its forecast.', { location: villageSelect.value }));
+  });
+
+  checkVillageButton?.addEventListener('click', () => {
+    if (!villageSelect?.value) {
+      renderUnavailable('Choose an Ahmedpur taluka village first.');
+      return;
+    }
+    deviceLocation = null;
+    selectedVillagePending = false;
     locationFallbackMessage = '';
     loadWeather();
   });
@@ -153,13 +175,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!location) throw new Error('Location permission was denied or GPS is unavailable. Choose your village or allow location access in browser settings.');
       if (automatic && villageSelectedByUser) return;
       deviceLocation = location;
+      selectedVillagePending = false;
       locationFallbackMessage = '';
       await loadWeather();
     } catch (error) {
       if (automatic && villageSelectedByUser) return;
       deviceLocation = null;
       locationFallbackMessage = error.message || 'Could not determine your current location.';
-      await loadWeather();
+      if (!selectedVillagePending) await loadWeather();
+      else setStatus(t('Village selected. Press Check weather to load its forecast.', { location: villageSelect?.value || 'Ahmedpur' }));
     } finally {
       if (currentLocationButton) currentLocationButton.disabled = false;
     }
@@ -170,5 +194,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     requestCurrentLocation();
   });
   document.addEventListener('nimbus-language-changed', loadWeather);
+  window.setInterval(() => {
+    if (!document.hidden && !selectedVillagePending) loadWeather();
+  }, 15 * 60 * 1000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !selectedVillagePending) loadWeather();
+  });
   await requestCurrentLocation(true);
 });

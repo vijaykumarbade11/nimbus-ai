@@ -3,11 +3,9 @@ services:
     name: nimbus-ai
     runtime: node
     plan: free
-    buildCommand: npm ci --prefix server --omit=dev
+    buildCommand: npm install --prefix server
     startCommand: npm start --prefix server
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: JWT_SECRET
-        generateValue: true

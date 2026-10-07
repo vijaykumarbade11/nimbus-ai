@@ -99,11 +99,16 @@
   .scheme-filters, .market-toolbar, .mandi-header { align-items: stretch; flex-direction: column; }
   .scheme-filters label, .scheme-filters input, .scheme-filters select,
   .market-toolbar > *, .mandi-select-label, .mandi-select-label select { width: 100%; min-width: 0; }
+  .product-list { grid-template-columns: minmax(0, 1fr); }
+  .product-info { padding: 16px; }
+  .product-topline { align-items: flex-start; flex-wrap: wrap; }
+  .product-actions > * { padding-left: 10px; padding-right: 10px; }
   .mandi-panel, .scheme-card, .dashboard-card, .feature-card { padding: 18px; }
   .table-scroll { max-width: calc(100vw - 28px); }
-  .auth-card { padding: 20px 18px; }
   .advisory-tabs { overflow-x: auto; }
   .advisory-tab { flex: 0 0 auto; white-space: nowrap; padding: 12px; }
+  .crop-chat-form { grid-template-columns: minmax(0, 1fr); }
+  .crop-chat-message { max-width: 100%; }
   .field-card { position: absolute; inset: auto 12px 12px; margin: 0; }
   .footer-links, .modal-topline, .detail-price-row { flex-direction: column; align-items: stretch; }
   footer, .site-footer { padding: 18px 16px; }

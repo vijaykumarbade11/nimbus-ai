@@ -9,6 +9,8 @@ const DEFAULT_LOCATION = {
 
 const IMD_BASE = (process.env.IMD_API_BASE_URL || 'https://api.imd.gov.in').replace(/\/$/, '');
 const AGRO_BASE = (process.env.AGROWEATHER_API_URL || 'https://agromet.imd.gov.in').replace(/\/$/, '');
+const OPENWEATHER_CURRENT_URL = 'https://api.openweathermap.org/data/2.5/weather';
+const OPENWEATHER_FORECAST_URL = 'https://api.openweathermap.org/data/2.5/forecast';
 const PUBLIC_WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
 const REVERSE_GEOCODE_URL = 'https://nominatim.openstreetmap.org/reverse';
 const PLACE_SEARCH_URL = 'https://photon.komoot.io/api/';
@@ -135,7 +137,16 @@ async function resolveAhmedpurVillage(village) {
     throw Object.assign(new Error('Choose a valid village in Ahmedpur taluka.'), { code: 'LOCATION_NOT_FOUND' });
   }
 
-  const normalizedName = requestedName.replace(/\s*\([^)]*\)/g, '').trim().toLocaleLowerCase();
+  const normalizeVillageName = (name) => name
+    .replace(/\s*\([^)]*\)/g, '')
+    .toLocaleLowerCase()
+    .replace(/shirur/g, 'sirur')
+    .replace(/[^a-z0-9]/g, '');
+  const normalizedName = normalizeVillageName(requestedName);
+  const requestedWithSubdivision = requestedName
+    .toLocaleLowerCase()
+    .replace(/[()]/g, '')
+    .replace(/[^a-z0-9]/g, '');
   const cacheKey = normalizedName;
   if (villageLocationCache.has(cacheKey)) return villageLocationCache.get(cacheKey);
 
@@ -159,10 +170,11 @@ async function resolveAhmedpurVillage(village) {
   }
   const matchingPlace = data?.features?.find((feature) => {
     const properties = feature.properties || {};
-    const name = String(properties.name || '').replace(/\s*\([^)]*\)/g, '').trim().toLocaleLowerCase();
-    return name === normalizedName
-      && properties.country === 'India'
-      && properties.state === 'Maharashtra'
+    const name = normalizeVillageName(String(properties.name || ''));
+    const isKnownDhanoriBkMapAlias = requestedWithSubdivision === 'dhanoribk' && name === 'dhanorabk';
+    return (name === normalizedName || isKnownDhanoriBkMapAlias)
+      && String(properties.country || '').toLocaleLowerCase() === 'india'
+      && /maharashtra/i.test(properties.state || '')
       && /ahmadpur|ahmedpur/i.test(properties.county || '')
       && ['city', 'town', 'village', 'locality'].includes(properties.type);
   });
@@ -290,8 +302,136 @@ async function fetchFromPublicWeather(location = DEFAULT_LOCATION) {
   };
 }
 
+function openWeatherDate(timestamp, timezoneOffset) {
+  return new Date((timestamp + timezoneOffset) * 1000).toISOString().slice(0, 10);
+}
+
+function describeOpenWeather(weather = {}) {
+  const id = Number(weather.id);
+  if (id >= 200 && id < 300) return 'Thunderstorm';
+  if (id >= 300 && id < 400) return 'Drizzle';
+  if (id === 500) return 'Light rain';
+  if (id === 501) return 'Rain';
+  if (id >= 502 && id < 600) return 'Heavy rain';
+  if (id >= 600 && id < 700) return 'Snow';
+  if (id >= 700 && id < 800) return 'Fog';
+  if (id === 800) return 'Clear sky';
+  if (id === 801) return 'Mainly clear';
+  if (id === 802) return 'Partly cloudy';
+  if (id >= 803 && id < 900) return 'Overcast';
+  const description = String(weather.description || 'Weather update');
+  return description.charAt(0).toLocaleUpperCase() + description.slice(1);
+}
+
+async function fetchFromOpenWeather(location = DEFAULT_LOCATION) {
+  const apiKey = process.env.OPENWEATHER_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const params = {
+      lat: location.latitude,
+      lon: location.longitude,
+      appid: apiKey,
+      units: 'metric'
+    };
+    const [currentResponse, forecastResponse] = await Promise.all([
+      axios.get(OPENWEATHER_CURRENT_URL, { params, timeout: 12000 }),
+      axios.get(OPENWEATHER_FORECAST_URL, { params, timeout: 12000 })
+    ]);
+    const currentData = currentResponse.data;
+    const forecastData = forecastResponse.data;
+    if (!currentData?.main || !Array.isArray(forecastData?.list)) {
+      throw new Error('OpenWeather returned incomplete current or forecast data.');
+    }
+
+    const timezoneOffset = toNumber(currentData.timezone, 0);
+    const forecastsByDay = new Map();
+    forecastData.list.forEach((item) => {
+      if (!Number.isFinite(item.dt) || !item.main) return;
+      const date = openWeatherDate(item.dt, timezoneOffset);
+      if (!forecastsByDay.has(date)) {
+        forecastsByDay.set(date, {
+          date,
+          temps: [],
+          rainProbability: [],
+          rainfall: 0,
+          conditionItem: item
+        });
+      }
+      const day = forecastsByDay.get(date);
+      if (Number.isFinite(item.main.temp_min)) day.temps.push(item.main.temp_min);
+      if (Number.isFinite(item.main.temp_max)) day.temps.push(item.main.temp_max);
+      if (Number.isFinite(item.pop)) day.rainProbability.push(item.pop * 100);
+      day.rainfall += toNumber(item.rain?.['3h'], 0);
+      if (Math.abs((item.dt - currentData.dt) - 43200) < Math.abs((day.conditionItem.dt - currentData.dt) - 43200)) {
+        day.conditionItem = item;
+      }
+    });
+
+    const forecast = Array.from(forecastsByDay.values()).slice(0, 5).map((day, index) => ({
+      day: index === 0 ? 'Today' : new Date(`${day.date}T12:00:00Z`).toLocaleDateString('en-IN', { weekday: 'short', timeZone: 'UTC' }),
+      date: day.date,
+      temp: day.temps.length ? Math.max(...day.temps) : null,
+      minTemp: day.temps.length ? Math.min(...day.temps) : null,
+      rainProbability: day.rainProbability.length ? Math.max(...day.rainProbability) : null,
+      rainfall: Number(day.rainfall.toFixed(1)),
+      condition: describeOpenWeather(day.conditionItem.weather?.[0])
+    }));
+    if (!forecast.length) throw new Error('OpenWeather returned no usable forecast periods.');
+
+    const closestForecast = forecastData.list.reduce((closest, item) => (
+      !closest || Math.abs(item.dt - currentData.dt) < Math.abs(closest.dt - currentData.dt) ? item : closest
+    ), null);
+    const currentRainProbability = Number.isFinite(closestForecast?.pop) ? closestForecast.pop * 100 : null;
+    const currentWeather = currentData.weather?.[0] || {};
+    const place = [currentData.name, currentData.sys?.country].filter(Boolean).join(', ');
+    const resolvedLocation = place && location.name === 'Visitor location'
+      ? { ...location, name: place }
+      : location;
+
+    return {
+      source: 'OPENWEATHERMAP',
+      location: resolvedLocation,
+      current: {
+        temp: toDisplayValue(toNumber(currentData.main.temp)),
+        feelsLike: toDisplayValue(toNumber(currentData.main.feels_like)),
+        humidity: toDisplayValue(toNumber(currentData.main.humidity)),
+        wind: toDisplayValue(toNumber(currentData.wind?.speed) == null ? null : Number((currentData.wind.speed * 3.6).toFixed(1))),
+        rainProbability: toDisplayValue(currentRainProbability),
+        rainfall: toDisplayValue(toNumber(currentData.rain?.['1h'] ?? currentData.rain?.['3h'])),
+        condition: describeOpenWeather(currentWeather),
+        updatedAt: currentData.dt ? new Date(currentData.dt * 1000).toISOString() : null,
+        windDirection: toDisplayValue(toNumber(currentData.wind?.deg)),
+        windGust: toDisplayValue(toNumber(currentData.wind?.gust) == null ? null : Number((currentData.wind.gust * 3.6).toFixed(1))),
+        cloudCover: toDisplayValue(toNumber(currentData.clouds?.all)),
+        pressure: toDisplayValue(toNumber(currentData.main.pressure)),
+        alert: 'OpenWeather forecast',
+        alertMessage: `OpenWeather model data for ${resolvedLocation.name}. This is not a reading from a local weather station.`
+      },
+      hourly: forecastData.list.slice(0, 8).map((item) => ({
+        time: item.dt ? new Date(item.dt * 1000).toISOString() : null,
+        temp: toDisplayValue(toNumber(item.main?.temp)),
+        rainProbability: toDisplayValue(Number.isFinite(item.pop) ? item.pop * 100 : null),
+        rainfall: toDisplayValue(toNumber(item.rain?.['3h'])),
+        condition: describeOpenWeather(item.weather?.[0])
+      })),
+      forecast,
+      alerts: []
+    };
+  } catch (error) {
+    const status = error.response?.status;
+    const reason = status === 401 ? 'OpenWeather rejected the API key.'
+      : status === 429 ? 'OpenWeather request limit reached.'
+        : status ? `OpenWeather returned HTTP ${status}.`
+          : 'OpenWeather could not be reached or returned incomplete data.';
+    throw new Error(reason);
+  }
+}
+
 async function fetchRealWeather(location = DEFAULT_LOCATION) {
-  const sourceAttempts = [fetchFromPublicWeather];
+  const sourceAttempts = [];
+  if (process.env.OPENWEATHER_API_KEY) sourceAttempts.push(fetchFromOpenWeather);
+  sourceAttempts.push(fetchFromPublicWeather);
   if (process.env.IMD_API_BASE_URL) sourceAttempts.push(fetchFromImd);
   if (process.env.AGROWEATHER_API_URL) sourceAttempts.push(fetchFromAgroweather);
   let lastError = null;
@@ -315,5 +455,6 @@ module.exports = {
   getForecast: fetchRealWeather,
   getAlerts: fetchRealWeather,
   resolveLocationName,
-  resolveAhmedpurVillage
+  resolveAhmedpurVillage,
+  fetchFromOpenWeather
 };
